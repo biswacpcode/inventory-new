@@ -225,7 +225,7 @@ export async function BlockUsers(emails: string[], startDate: Date, endDate: Dat
 export async function CheckBlocked(email?: string){
   const user = await getUser();
   if(!user){
-    return true;
+    return;
   }
   if(user){
     const useremail = user.email;
@@ -256,7 +256,6 @@ export async function CheckBlocked(email?: string){
     }
   
   }
-  return true;
  
 }
 
