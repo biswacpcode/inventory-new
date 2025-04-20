@@ -237,6 +237,8 @@ export async function ReadInventoryItems() {
                 doc.$id,
                 { status: "late" }
               );
+
+              DeleteBookingRequest
               doc.status = "late"; // Update local value too
             } catch (updateError) {
               console.error(`Failed to update status for ${doc.$id}:`, updateError);
@@ -355,6 +357,33 @@ export async function ReadInventoryItems() {
           status: statusTo,
         }
       );
+
+      if (statusTo === "late"){
+        const response = await database.getDocument(
+          DATABASE_ID!,
+          BOOKINGS_COLLECTION_ID!,
+          requestId
+        )
+
+        const item = await database.getDocument(
+          DATABASE_ID!,
+          ITEMS_COLLECTION_ID!,
+          response.itemId
+        )
+
+        const availableQuantity = item.availableQuantity;
+
+        const bookedQuanitity = response.bookedQuantity;
+
+        await database.updateDocument(
+          process.env.DATABASE_ID!,
+          ITEMS_COLLECTION_ID!,
+          response.itemId,
+          {
+            availableQuantity: availableQuantity + bookedQuanitity,
+          }
+        )
+      }
   
       revalidatePath(`/items-requests`);
     } catch (error) {
