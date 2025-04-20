@@ -473,4 +473,151 @@ export async function returntimeUpdate(requestId: string, itemId: string, curren
       throw new Error("Failed to read booking items");
     }
   }
+// Reading Items of Society
+  export async function ReadItemsInSociety() {
+    // VERIFYING USER
+    const user = await getUser();
+  
+    if (!user) {
+      return redirect("/");
+    }
+    const userId = await getUserId(user.email!);
+  
+    try {
+      // Fetch booking items from Appwrite
+      const response = await database.listDocuments(
+        process.env.DATABASE_ID!,
+        process.env.ITEMS_COLLECTION_ID!,
+        [Query.equal("society", [userId])]
+      );
+  
+      // Initialize an array to store the items with itemName
+      const itemsWithDetails = [];
+  
+      // Iterate over the fetched documents to construct the items array
+      for (const doc of response.documents) {
+        // Construct the inventory item with the required fields
+        const inventoryItem = {
+          $id: doc.$id,
+          itemName: doc.itemName, // Adding itemName here
+          totalQuantity: doc.totalQuantity, // Assuming these fields exist in the document
+          availableQuantity: doc.availableQuantity,
+          issuedQuantity: doc.totalQuantity-doc.availableQuantity - doc.damagedQuantity, // Assuming these fields exist in the document
+        };
+  
+        // Add the inventory item to the array
+        itemsWithDetails.push(inventoryItem);
+      }
+  
+      return itemsWithDetails; // Return the array of inventory items
+  
+    } catch (error) {
+      console.error("Error fetching items:", error);
+      throw new Error("Failed to fetch items"); // Handle the error appropriately
+    }
+  }
 
+
+  function formatDateTime(isoString: string): string {
+    const date = new Date(isoString);
+  
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const year = date.getFullYear();
+  
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+  
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+  }
+
+  // GETTING BOOKING ITEMS BY "requestedTo" ID
+export async function ReadBookingItemsByRequestedTo() {
+  // VERIFYING USER
+  const user = await getUser();
+
+  if (!user) {
+    return redirect("/");
+  }
+  const userId = await getUserId(user.email!);
+
+  try {
+
+    // fetch user from Appwrite
+    const fetchedUser = await database.getDocument(
+      process.env.DATABASE_ID!,
+      process.env.USERS_COLLECTION_ID!,
+      userId
+    )
+    // Fetch booking items from Appwrite
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      process.env.BOOKINGS_COLLECTION_ID!,
+      [Query.equal("requestedTo", [fetchedUser.id])]
+    );
+
+
+    // Initialize an array to store the items with itemName
+    const itemsWithNames = [];
+
+    // Iterate over the fetched booking items
+    for (const doc of response.documents) {
+      // Fetch the corresponding inventory item to get the itemName
+      const inventoryItem = await ReadItemById(doc.itemId);
+      const start = formatDateTime(doc.start);
+      const end = formatDateTime(doc.end);
+
+      // Construct the booking item with the itemName included
+      const bookingItem = {
+        $id: doc.$id,
+        itemId: doc.itemId,
+        itemName: inventoryItem.itemName, // Adding itemName here
+        start: start,
+        end: end,
+        purpose: doc.purpose,
+        bookedQuantity: doc.bookedQuantity,
+        requestedBy: doc.requestedBy,
+        status: doc.status,
+      };
+
+      // Add the booking item to the array
+      itemsWithNames.push(bookingItem);
+    }
+
+    return itemsWithNames;
+  } catch (error) {
+    console.error("Failed to read booking items:", error);
+    throw new Error("Failed to read booking items");
+  }
+}
+
+
+//check coorect Society
+
+export async function checkSocietyCorrect(requestId: string){
+  const user = await getUser();
+
+  if (!user) {
+    return false; // Or handle the unauthorized case as needed
+  }
+
+  try{
+    const userId = await getUserId(user.email!);
+    const us = await ReadUserById(userId);
+    const society_extracted = us.$id;
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      BOOKINGS_COLLECTION_ID!, 
+      [Query.equal("$id", [requestId])]
+    );
+    if (society_extracted === response.documents[0].requestedTo)
+      return true;
+    else
+    return false;
+  }catch (error) {
+    console.error("Failed to check role:", error);
+    throw new Error("Failed to check role");
+  }
+
+}

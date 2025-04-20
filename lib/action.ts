@@ -303,3 +303,112 @@ export async function UnBlockUsers(emails: string[]){
       throw new Error("Failed to block the users")
     }
 }
+
+
+// FETCH USERS BY ROLE
+export async function fetchUsersByRole(role: string) {
+  try {
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      USER_COLLECTION!,
+      [Query.equal("role", [role])]
+    );
+
+    return response.documents;
+  } catch (error) {
+    console.error("Error fetching users by role:", error);
+    throw new Error("Failed to fetch users by role");
+  }
+}
+
+
+
+//uPDATING rOLE
+
+export const UpdateUserRole = async (
+  userId: string,
+  newRole: string,
+) => {
+  const user = await database.getDocument(
+    process.env.DATABASE_ID!,
+    USER_COLLECTION!,
+    userId
+  );
+
+  // Store original role and society if not already stored
+  if (!user.originalRole) {
+    user.originalRole = user.role;
+  }
+
+  // Update role and society
+  user.role = newRole;
+
+  await database.updateDocument(
+    process.env.DATABASE_ID!,
+    USER_COLLECTION!,
+    userId,
+    {
+      role:newRole,
+      originalRole:user.originalRole
+    }
+  );
+};
+
+//Assign Society
+export const AssignSociety = async (
+  userId: string,
+  societyId: string,
+) => {
+  const user = await database.getDocument(
+    process.env.DATABASE_ID!,
+    USER_COLLECTION!,
+    userId
+  );
+
+  // Store original role and society if not already stored
+  if (user.id===societyId) {
+    return;
+  }
+  try{
+    await database.updateDocument(
+      process.env.DATABASE_ID!,
+      USER_COLLECTION!,
+      userId,
+      {
+        id: societyId,
+      }
+    );
+  }catch(error){
+    console.error("Failed to assign Society ", error);
+    throw new Error("Failed to assign Society");
+  }
+
+  
+};
+
+//ResetUserRole
+export const ResetUserRole = async (userId: string) => {
+  const user = await database.getDocument(
+    process.env.DATABASE_ID!,
+    USER_COLLECTION!,
+    userId
+  );
+
+  if (!user.originalRole) {
+    user.originalRole=user.role;
+  }
+
+  user.role = user.originalRole;
+  user.id = user.$id;
+
+  await database.updateDocument(
+    process.env.DATABASE_ID!,
+    USER_COLLECTION!,
+    userId,
+    {
+      role: user.originalRole,
+      id:user.$id,
+      originalRole : user.originalRole
+    }
+  );
+};

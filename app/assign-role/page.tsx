@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { SearchIcon } from "lucide-react";
 import { Models } from "node-appwrite";
-import { ReadAllUsersByRoleOrSearch } from "@/lib/action";
+import { AssignSociety, fetchUsersByRole, ReadAllUsersByRoleOrSearch, ResetUserRole, UpdateUserRole } from "@/lib/action";
 
 interface Users {
   $id: string;
@@ -57,8 +57,8 @@ export default function AssignRolesPage() {
   async function fetchUsers() {
     const fetchedUsers = await ReadAllUsersByRoleOrSearch(searchTerm);
     setUsers(fetchedUsers ?? []);
-    //const societies = await fetchUsersByRole("Society");
-    //setSocieties(societies);
+    const societies = await fetchUsersByRole("Society");
+    setSocieties(societies);
 
   }
 
@@ -70,7 +70,7 @@ export default function AssignRolesPage() {
   async function Reset(userId: string){
     setLoading(true);
     setCurrentUser(userId);
-    //ResetUserRole(userId).then(()=>window.location.reload())
+    ResetUserRole(userId).then(()=>window.location.reload())
 
   }
 
@@ -124,12 +124,12 @@ export default function AssignRolesPage() {
                     {/* Role change addition */}
                     <Select
                       value={user.role}
-                    //   onValueChange={(newRole) => {
-                    //     // Handle role change
-                    //     UpdateUserRole(user.$id, newRole)
-                    //       .then(() => fetchUsers())
-                    //       .catch((err) => console.error(err));
-                    //   }}
+                      onValueChange={(newRole) => {
+                        // Handle role change
+                        UpdateUserRole(user.$id, newRole)
+                          .then(() => fetchUsers())
+                          .catch((err) => console.error(err));
+                      }}
                     >
                       <SelectTrigger className="my-2">
 
@@ -151,10 +151,10 @@ export default function AssignRolesPage() {
                     {user.role === "Society" && (
                       <Select
                         onValueChange={(societyId) => {
-                          // Handle society type selection
-                        //   AssignSociety(user.$id, societyId)
-                        //   .then(() => searchUser())
-                        //   .catch((err) => console.error(err));
+                          //Handle society type selection
+                          AssignSociety(user.$id, societyId)
+                          .then(() => searchUser())
+                          .catch((err) => console.error(err));
                         }}
                       >
                         <SelectTrigger className="my-2">
