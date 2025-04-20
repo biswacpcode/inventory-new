@@ -45,8 +45,7 @@ export default function ItemsRequestsTable({ isLoading, searchQuery }: ItemsRequ
     const fetchRequests = async () => {
       setLoading(true)
       try {
-        const response = await ReadItemBookingsByRequestedBy();
-        const data = response.reverse();
+        const data = await ReadItemBookingsByRequestedBy();
         setRequests(data)
         setFilteredRequests(data)
       } catch (err) {
