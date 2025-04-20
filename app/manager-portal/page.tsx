@@ -162,8 +162,8 @@ export default function ManagerPortalPage() {
     const createdDate = new Date(createdAt);
     const startDate = new Date(start);
   
-    const diffCreated = Math.abs(now.getTime() - createdDate.getTime());
-    const diffStart = Math.abs(now.getTime() - startDate.getTime());
+    const diffCreated = (now.getTime() - createdDate.getTime());
+    const diffStart = (now.getTime() - startDate.getTime());
     const fifteenMinutes = 15 * 60 * 1000; // milliseconds
   
     return (diffCreated <= fifteenMinutes || diffStart <= fifteenMinutes || status === "punched-in") && (status !== "punched-out" && status!=="late");
