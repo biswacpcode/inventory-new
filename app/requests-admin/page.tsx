@@ -68,27 +68,26 @@ export default function Component() {
     setLoading(true); // Start loading
     const fetchedRequests = await ReadItemBookings(); // Fetch booking items
     setRequests(fetchedRequests);
-    await fetchUsers(fetchedRequests); // Fetch users after fetching requests
+    // await fetchUsers(fetchedRequests); // Fetch users after fetching requests
     setLoading(false); // Stop loading after fetch is complete
   }
 
-  // Fetch users based on the booking requests in parallel
-  async function fetchUsers(requests: Request[]) {
-    const userIdsSet = new Set(requests.map((request) => request.requestedBy));
-const userIds = Array.from(userIdsSet);
+  // // Fetch users based on the booking requests in parallel
+  // async function fetchUsers(requests: Request[]) {
+  //   const userIds = requests.map((request) => request.requestedBy)
 
-    // Fetch users in parallel using Promise.all
-    const userFetchPromises = userIds.map((userId) => ReadUserById(userId));
-    const usersArray = await Promise.all(userFetchPromises);
+  //   // Fetch users in parallel using Promise.all
+  //   const userFetchPromises = userIds.map((userId) => ReadUserById(userId));
+  //   const usersArray = await Promise.all(userFetchPromises);
 
-    // Create a user map to store the fetched users
-    const userMap: { [key: string]: User } = {};
-    usersArray.forEach((user) => {
-      if (user) userMap[user.$id] = user; // Use user ID as the key
-    });
+  //   // Create a user map to store the fetched users
+  //   const userMap: { [key: string]: User } = {};
+  //   usersArray.forEach((user) => {
+  //     if (user) userMap[user.$id] = user; // Use user ID as the key
+  //   });
 
-    setUsers(userMap); // Set the user data in the state
-  }
+  //   setUsers(userMap); // Set the user data in the state
+  // }
 
   // Fetch requests on component mount after checking authorization
   useEffect(() => {
