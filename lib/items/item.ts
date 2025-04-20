@@ -219,17 +219,41 @@ export async function ReadInventoryItems() {
           Query.limit(100),
         ]
       );
+
+      const now = new Date();
   
       // Map the response to include only necessary fields
-      const itemsWithNames = response.documents.map((doc) => ({
-        $id: doc.$id,
-        itemId: doc.itemId,
-        itemName: doc.itemName,
-        start: doc.start,
-        end: doc.end,
-        bookedQuantity: doc.bookedQuantity,
-        status: doc.status,
-      }));
+      const itemsWithNames = await Promise.all(
+        response.documents.map(async (doc) => {
+          const createdAt = new Date(doc.$createdAt);
+          const diffInMinutes = (now.getTime() - createdAt.getTime()) / 60000;
+  
+          // If more than 10 minutes old and not already "late", update the status
+          if (diffInMinutes > 10 && doc.status !== "late") {
+            try {
+              await database.updateDocument(
+                DATABASE_ID!,
+                BOOKINGS_COLLECTION_ID!,
+                doc.$id,
+                { status: "late" }
+              );
+              doc.status = "late"; // Update local value too
+            } catch (updateError) {
+              console.error(`Failed to update status for ${doc.$id}:`, updateError);
+            }
+          }
+  
+          return {
+            $id: doc.$id,
+            itemId: doc.itemId,
+            itemName: doc.itemName,
+            start: doc.start,
+            end: doc.end,
+            bookedQuantity: doc.bookedQuantity,
+            status: doc.status,
+          };
+        })
+      );
   
       return itemsWithNames;
     } catch (error) {
