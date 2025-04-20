@@ -189,15 +189,27 @@ export default function ManagerPortalPage() {
         const createdAt = courtInfo.createdAt;
         const status = courtInfo.status;
 
+        const now = new Date();
+        const createdDate = new Date(createdAt);
+    const startDate = new Date(start);
+
 
         if (!isWithin15Minutes(start, createdAt, status)) {
             setScanResult({
                 success: false,
-                message: "Court check-in rejected. You are more than 15 minutes late or user is trying to punch in early than the slot.",
+                message: "Court check-in rejected. You are more than 15 minutes late.",
               });
               setDialogOpen(true);
               updateCourtRequestStatus(parsedData.id, "late");
-        } else {
+        } else if (now.getTime() - startDate.getTime() < 0 || now.getTime() - createdDate.getTime() < 0){
+          setScanResult({
+            success: false,
+            message: "Court check-in rejected. User is trying to Punch in Earlier than Slot alloted.",
+          });
+          setDialogOpen(true);
+        }
+        
+        else {
             setScanResult({
                 success: true,
                 message: `Court ${status==="reserved"? 'check in' : 'checkout'} successful! Status updated to ${status==="reserved"? 'punched-in' : 'punched-out'}.`,
