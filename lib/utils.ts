@@ -45,5 +45,7 @@ export const formatISTDateTime = (date: Date) =>
       timeZone: 'UTC',              // <-- this is the key
       timeZoneName: 'short',
     };
-    return date.toLocaleString('en-IN', options);
+    const result = date.toLocaleString('en-IN', options);
+    const formatted = result.replace('UTC', 'IST');
+    return formatted;
   }
