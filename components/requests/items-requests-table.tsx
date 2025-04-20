@@ -185,7 +185,7 @@ export default function ItemsRequestsTable({ isLoading, searchQuery }: ItemsRequ
 
   return isMobile ? (
     <div className="grid gap-4">
-      {filteredRequests.reverse().map((request) => (
+      {filteredRequests.map((request) => (
         <Card key={request.$id}>
         <CardHeader className="pb-2">
           <CardTitle>
