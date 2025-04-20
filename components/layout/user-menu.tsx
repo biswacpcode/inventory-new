@@ -9,10 +9,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut, FileText } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function UserMenu() {
   const { data: session } = useSession();
-
+  const router = useRouter();
   if (!session) return null;
 
   return (
@@ -29,7 +30,9 @@ export default function UserMenu() {
         
         <DropdownMenuItem 
           className="cursor-pointer flex items-center gap-2 text-red-600"
-          onClick={() => signOut()}
+          onClick={() => { 
+            router.push('/');
+            signOut()}}
         >
           <LogOut className="h-4 w-4" />
           <span>Sign out</span>
