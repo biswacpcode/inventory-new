@@ -704,3 +704,151 @@ export async function CreateInventoryItem(formdata: FormData) {
 
   redirect("/inventory");
 }
+
+
+//Deleting Inventory Item
+
+export async function DeleteInventoryItem(
+  itemId: string,
+) {
+  const user = await getUser();
+
+  if (!user) {
+    return redirect("/");
+  }
+
+  try {
+    // Deleting the document from the Appwrite database
+    await database.deleteDocument(
+      process.env.DATABASE_ID!,
+      process.env.ITEMS_COLLECTION_ID!,
+      itemId
+    );
+
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      process.env.BOOKINGS_COLLECTION_ID!,
+      [Query.equal("itemId", [itemId])]
+    );
+
+    for (const doc of response.documents){
+      await database.deleteDocument(
+        process.env.DATABASE_ID!,
+        process.env.BOOKINGS_COLLECTION_ID!,
+        doc.$id
+        );
+    }
+
+    revalidatePath(`/inventory-admin`);
+  } catch (error) {
+    console.error("Failed to delete booking request:", error);
+    throw new Error("Failed to delete booking request");
+  }
+}
+
+
+//Upadting Item 
+
+export async function UpdateInventoryItem(itemId: string, total: number, available: number, damaged: number){
+  try{
+    await database.updateDocument(
+      process.env.DATABASE_ID!,
+      process.env.ITEMS_COLLECTION_ID!, // Ensure this is set to your items collection ID
+      itemId, // Use itemId to identify the document
+      {
+        availableQuantity: available,
+        totalQuantity: total,
+        damagedQuantity: damaged
+      }
+    );
+  }
+  catch (error) {
+    console.error("Failed to update inventory:", error);
+    throw new Error("Failed to update inventory");
+  }
+}
+
+// update image bucket
+export async function UpdateImage(fileId: string, formdata: FormData){
+  const imageFile = formdata.get("itemImage") as File;
+  if (imageFile && imageFile.size > 0) {
+    if (fileId!=="https:")
+  try {
+    await storage.deleteFile(
+      process.env.BUCKET_ID!,    // Your Appwrite bucket ID
+      fileId
+    );
+  } catch (error) {
+    console.error("Error deleting old file to Appwrite storage:", error);
+    throw new Error("Failed to deleting old image to Appwrite storage");
+  }
+
+  try {
+    const response = await storage.createFile(
+      process.env.BUCKET_ID!,    // Your Appwrite bucket ID
+      'unique()',                // Unique file ID
+      imageFile                  // The file to be uploaded
+    );
+
+    // After uploading, construct the URL to access the file
+    const imageUrl = `https://cloud.appwrite.io/v1/storage/buckets/${process.env.BUCKET_ID}/files/${response.$id}/view?project=${process.env.PROJECT_ID}`;
+    
+    return imageUrl;
+
+
+    
+  } catch (error) {
+    console.error("Error updating file to Appwrite storage:", error);
+    throw new Error("Failed to updating image to Appwrite storage");
+  }
+}
+
+
+}
+
+//Modify Inventory Item
+export async function ModifyInventoryItem(itemId: string, formdata: FormData) {
+  // VERIFYING USER
+  const user = await getUser();
+
+  if (!user) {
+    redirect("/");
+    return;
+  }
+
+  // EXTRACTING FORM DATA
+  const itemName = formdata.get("itemName") as string;
+  const itemImage = formdata.get("itemImage") as string; // Corrected key
+  const totalQuantity = parseInt(formdata.get("total-quantity") as string, 10);
+  const availableQuantity = parseInt(formdata.get("available-quantity") as string, 10);
+  const description = formdata.get("description") as string;
+  const society = formdata.get("society") as string;
+  const council = formdata.get("council") as string;
+  const defaultStatus = formdata.get("defaultStatus") as string;
+  const maxQuantity = parseInt(formdata.get("allowed-quantity") as string,10);
+  const maxTime = parseInt(formdata.get("allowed-time") as string, 10);
+  console.log(itemName);
+
+  try{
+    await database.updateDocument(
+      process.env.DATABASE_ID!,              // Your Appwrite database ID
+      process.env.ITEMS_COLLECTION_ID!,
+      itemId,
+      {
+        itemName: itemName,
+        itemImage: itemImage,
+        description: description,
+        totalQuantity: totalQuantity,
+        availableQuantity: availableQuantity,
+        maxQuantity: maxQuantity,
+        maxTime: maxTime,
+        society: society,
+        council: council,
+        defaultStatus: defaultStatus
+      }
+    )
+  }catch(error){
+    console.error("Failed to modify inventory", error);
+    throw new Error("Failed to modify inventory");
+  }
+}

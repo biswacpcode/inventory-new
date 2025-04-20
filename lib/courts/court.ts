@@ -6,6 +6,7 @@ import { authOptions } from "../auth";
 import { getUser, getUserId } from "../action";
 import { redirect } from "next/navigation";
 import { addMinutes } from "date-fns";
+import { revalidatePath } from "next/cache";
 const {
     DATABASE_ID, COURTS_COLLECTION_ID,COURTBOOKINGS_COLLECTION_ID
 } = process.env;
@@ -656,4 +657,111 @@ export async function CreateInventoryCourt(formdata: FormData) {
 
 
   redirect("/inventory");
+}
+
+//Deleting Court Item
+
+export async function DeleteCourtItem(
+  itemId: string,
+) {
+  const user = await getUser();
+
+  if (!user) {
+    return redirect("/");
+  }
+
+  try {
+    // Deleting the document from the Appwrite database
+    await database.deleteDocument(
+      process.env.DATABASE_ID!,
+      process.env.COURTS_COLLECTION_ID!,
+      itemId
+    );
+
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      process.env.COURTBOOKINGS_COLLECTION_ID!,
+      [Query.equal("courtId", [itemId])]
+    );
+
+    for (const doc of response.documents){
+      await database.deleteDocument(
+        process.env.DATABASE_ID!,
+        process.env.COURTBOOKINGS_COLLECTION_ID!,
+        doc.$id
+        );
+    }
+
+    revalidatePath(`/inventory-admin`);
+  } catch (error) {
+    console.error("Failed to delete booking request:", error);
+    throw new Error("Failed to delete booking request");
+  }
+}
+
+//Modify Inventory Item
+export async function ModifyCourtItem(itemId: string, formdata: FormData) {
+  // VERIFYING USER
+  const user = await getUser();
+
+  if (!user) {
+    redirect("/");
+    return;
+  }
+
+  // EXTRACTING FORM DATA
+  const courtName = formdata.get("courtName") as string;
+  const courtImage = formdata.get("courtImage") as string; // Corrected key
+  const type= formdata.get("type") as string;
+  const minUsers = parseInt(formdata.get("min-users") as string, 10);
+  const location = formdata.get("location") as string;
+  const timeSlotsRaw = formdata.get("timeSlots") as string;
+  const maxTime = parseInt(formdata.get("allowed-time") as string, 10);
+  const timeSlots: Record<string, string[]> = {};
+
+  if (timeSlotsRaw) {
+    console.log("raw entry passed");
+    const days = timeSlotsRaw.split(";");
+    console.log(days);
+    days.forEach((day) => {
+      const [dayName, slots] = day.split(":-");
+      console.log([dayName,slots]);
+      if (dayName && slots) {
+        const trimmedDay = dayName.trim();
+        const slotArray = slots
+          .split(",")
+          .map((slot) => slot.trim())
+          .filter((slot) => /^\d{2}:\d{2}-\d{2}:\d{2}$/.test(slot)); // Basic validation
+        if (slotArray.length > 0) {
+          timeSlots[trimmedDay] = slotArray;
+        }
+      }
+    });
+  }
+
+  // VALIDATE TIME SLOTS
+  if (Object.keys(timeSlots).length === 0) {
+    throw new Error("Invalid or missing time slots format.");
+  }
+
+  console.log(timeSlots);
+  try{
+    await database.updateDocument(
+      process.env.DATABASE_ID!,              // Your Appwrite database ID
+      process.env.COURTS_COLLECTION_ID!,
+      itemId,
+      {
+        courtName:courtName,
+        courtImage:courtImage,
+        location: location,
+        type: type,
+        maxTime: maxTime,
+        minUsers:minUsers,
+        timeSlots:JSON.stringify(timeSlots)
+      }
+    )
+  }catch(error){
+    console.error("Failed to modify court", error);
+    throw new Error("Failed to modify court");
+  }
 }
