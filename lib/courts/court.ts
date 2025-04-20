@@ -489,3 +489,58 @@ export async function ReadCourtRequestsByRequestedBy() {
     throw new Error("Failed to read court booking requests");
   }
 }
+
+//Deleting Court Booking Request
+
+export async function DeleteCourtBookingRequest(
+  requestId: string
+): Promise<void> {
+  try {
+    await database.deleteDocument(
+      process.env.DATABASE_ID!,
+      process.env.COURTBOOKINGS_COLLECTION_ID!,
+      requestId
+    );
+
+    // Optionally, you can update related court availability or perform other actions here
+    console.log("Court booking request deleted successfully.");
+  } catch (error) {
+    console.error("Failed to delete court booking request:", error);
+    throw new Error("Failed to delete court booking request.");
+  }
+}
+
+
+//Reading All Court Requests
+
+export async function ReadAllCourtRequests(){
+  try{
+
+    const response = await database.listDocuments(
+      DATABASE_ID!,
+      COURTBOOKINGS_COLLECTION_ID!,
+      [
+        Query.orderDesc("$createdAt"),
+        Query.limit(400)
+      ]
+    )
+    if (response.total === 0)
+      return []
+
+    const fetchBookings = response.documents.map((booking)=>{
+      return {
+        $id: booking.$id,
+        courtId: booking.courtId,
+        courtName: booking.courtName,
+        startDateTime: booking.start,
+        endDateTime: booking.end,
+        status: booking.status
+      }
+    }
+  )
+  return fetchBookings;
+  }catch(error){
+    console.error("Failed to fetch all Court Requests : ", error);
+    throw new Error ("Failed to fetch all Court Requests")
+  }
+}

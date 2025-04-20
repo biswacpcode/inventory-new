@@ -68,32 +68,7 @@ export default function ItemsRequestsTable({ isLoading, searchQuery }: ItemsRequ
       )
     );
   }, [searchQuery, requests]);
-
-  const handleDelete = async (id: string, itemId: string, bookedQuantity: number) => {
-    const updated = filteredRequests.filter((request) => request.$id !== id)
-    setRequests(updated)
-    setFilteredRequests(updated)
-    try{
-      const deletionPromise = DeleteBookingRequest(id, itemId, bookedQuantity);
-      await deletionPromise;
-      toast({
-              title: "Booking Deleted Successfully!",
-              description: "Head for another Boooking?",
-            })
-    }catch (error) {
-      console.error("Deletion failed:", error);
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem with your request.\nPlease the store admin for assistance",
-      })
-      // Optionally: Revert optimistic update if deletion fails
-      setRequests((prev) => [...prev, filteredRequests.find((req) => req.$id === id)!]);
-      setFilteredRequests((prev) => [...prev, filteredRequests.find((req) => req.$id === id)!]);
-    }
-    
-  }
-
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case "approved":

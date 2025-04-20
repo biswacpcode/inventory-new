@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Trash2 } from "lucide-react"
 import { formatISTDateTime } from "@/lib/utils"
 import { toast } from "@/hooks/use-toast"
-import { ReadCourtRequestsByRequestedBy } from "@/lib/courts/court"
+import { DeleteCourtBookingRequest, ReadCourtRequestsByRequestedBy } from "@/lib/courts/court"
 
 type CourtRequest = {
   $id: string;
@@ -80,7 +80,7 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
       setRequests(updated)
       setFilteredRequests(updated)
       try{
-        const deletionPromise = true//DeleteBookingRequest(id, itemId, bookedQuantity);
+        const deletionPromise = DeleteCourtBookingRequest(id);
         await deletionPromise;
         toast({
                 title: "Booking Deleted Successfully!",
@@ -184,7 +184,7 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
   if (isMobile) {
     return (
       <div className="grid gap-4">
-        {filteredRequests.reverse().map((request) => (
+        {filteredRequests.map((request) => (
           <Card key={request.$id}>
             <CardHeader className="pb-2">
               <CardTitle>
@@ -197,11 +197,11 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
               <div className="grid gap-2">
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Start:</span>
-                  <span className="text-sm">{formatISTDateTime(request.startDateTime)}</span>
+                  <span className="text-sm">{formatISTDateTime(new Date(request.startDateTime))}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">End:</span>
-                  <span className="text-sm">{formatISTDateTime(request.endDateTime)}</span>
+                  <span className="text-sm">{formatISTDateTime(new Date(request.endDateTime))}</span>
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <Badge className={getStatusColor(request.status)}>
@@ -232,15 +232,15 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredRequests.reverse().map((request) => (
+          {filteredRequests.map((request) => (
             <TableRow key={request.$id}>
               <TableCell>
                 <Link href={`/requests/court/${request.$id}`} className="hover:underline">
                   {request.courtName}
                 </Link>
               </TableCell>
-              <TableCell>{formatISTDateTime(request.startDateTime)}</TableCell>
-              <TableCell>{formatISTDateTime(request.endDateTime)}</TableCell>
+              <TableCell>{formatISTDateTime(new Date(request.startDateTime))}</TableCell>
+              <TableCell>{formatISTDateTime(new Date(request.endDateTime))}</TableCell>
               <TableCell>
                 <Badge className={getStatusColor(request.status)}>
                   {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
