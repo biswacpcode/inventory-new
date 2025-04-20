@@ -192,6 +192,7 @@ export default function ManagerPortalPage() {
                 message: "Court check-in rejected. You are more than 15 minutes late.",
               });
               setDialogOpen(true);
+              updateCourtRequestStatus(parsedData.id, "late");
         } else {
             setScanResult({
                 success: true,

@@ -348,7 +348,7 @@ export async function ReadCourtRequest(requestId: string){
 
 //Updating COurt requests
 
-export async function updateCourtRequestStatus(requestId: string) {
+export async function updateCourtRequestStatus(requestId: string, newStatus?:string) {
   try {
     const response = await database.getDocument(
       DATABASE_ID!,
@@ -359,7 +359,7 @@ export async function updateCourtRequestStatus(requestId: string) {
     const currentTime = new Date().toISOString();
 
 
-    const status =
+    const status = newStatus ||
       response.status === "reserved"
         ? "punched-in"
         : response.status === "punched-in"
