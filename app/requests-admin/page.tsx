@@ -67,7 +67,9 @@ export default function Component() {
   // Fetch all booking requests and related users
   async function fetchRequests() {
     setLoading(true); // Start loading
-    const fetchedRequests = await ReadItemBookings(); // Fetch booking items
+    const data = await ReadItemBookings(); // Fetch booking items
+
+    const fetchedRequests = data.reverse();
     setRequests(fetchedRequests);
     // await fetchUsers(fetchedRequests); // Fetch users after fetching requests
     setLoading(false); // Stop loading after fetch is complete
