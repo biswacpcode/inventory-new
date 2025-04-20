@@ -213,7 +213,7 @@ export default function ItemsRequestsTable({ isLoading, searchQuery }: ItemsRequ
               <Badge className={getStatusColor(request.status)}>
                 {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
               </Badge>
-              <Button variant="ghost" size="icon" onClick={() => handleDelete(request.$id, request.itemId, request.bookedQuantity)}>
+              <Button variant="ghost" size="icon" onClick={() => handleDelete(request.$id, request.itemId, request.bookedQuantity)} disabled={request.status!=="pending"}>
                 <Trash2 className="w-4 h-4" />
               </Button>
             </div>
