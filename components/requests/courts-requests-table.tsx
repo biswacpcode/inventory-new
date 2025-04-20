@@ -207,7 +207,7 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
                   <Badge className={getStatusColor(request.status)}>
                     {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                   </Badge>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(request.$id)}>
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(request.$id)} disabled={request.status!=="reserved"}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -247,7 +247,7 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
                 </Badge>
               </TableCell>
               <TableCell>
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(request.$id)}>
+                <Button variant="ghost" size="icon" onClick={() => handleDelete(request.$id)} disabled={request.status!=="reserved"}>
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </TableCell>
