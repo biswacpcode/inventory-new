@@ -1,6 +1,6 @@
 'use server'
 import { ID, Query } from "node-appwrite";
-import { database } from "../appwrite.config";
+import { database, storage } from "../appwrite.config";
 import { getUser, getUserId, ReadUserById } from "../action";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -463,6 +463,9 @@ export async function returntimeUpdate(requestId: string, itemId: string, curren
             status: doc.status,
             userName: `${user.firstName} ${user.lastName}`,
             userEmail: user.email,
+            receivedAt: doc.receivedAt,
+            returnedAt: doc.returnedAt,
+            requestedBy: doc.requestedBy
           };
         })
       );
@@ -620,4 +623,84 @@ export async function checkSocietyCorrect(requestId: string){
     throw new Error("Failed to check role");
   }
 
+}
+
+
+// ADDING NEW INVENTORY ITEM
+export async function CreateInventoryItem(formdata: FormData) {
+  // VERIFYING USER
+  const user = await getUser();
+
+  if (!user) {
+    redirect("/");
+    return;
+  }
+
+  // EXTRACTING FORM DATA
+  const itemName = formdata.get("name") as string;
+  const itemImage = formdata.get("itemImage") as File; // Corrected key
+  const totalQuantity = parseInt(formdata.get("total-quantity") as string, 10);
+  const availableQuantity = parseInt(formdata.get("available-quantity") as string, 10);
+  const description = formdata.get("description") as string;
+  const society = formdata.get("society") as string;
+  const council = formdata.get("council") as string;
+  const defaultStatus = formdata.get("defaultStatus") as string;
+  const maxQuantity = parseInt(formdata.get("allowed-quantity") as string, 10);
+  const maxTime = parseInt(formdata.get("allowed-time") as string, 10);
+
+  let imageUrl = '';
+
+  // Handle file upload to Appwrite Storage
+  if (itemImage && itemImage.size > 0) {
+    try {
+      const response = await storage.createFile(
+        process.env.BUCKET_ID!,    // Your Appwrite bucket ID
+        'unique()',                // Unique file ID
+        itemImage                  // The file to be uploaded
+      );
+
+      // After uploading, construct the URL to access the file
+      imageUrl = `https://cloud.appwrite.io/v1/storage/buckets/${process.env.BUCKET_ID}/files/${response.$id}/view?project=${process.env.PROJECT_ID}`;
+      
+      console.log("Image uploaded successfully:", imageUrl);
+      
+    } catch (error) {
+      console.error("Error uploading file to Appwrite storage:", error);
+      throw new Error("Failed to upload image to Appwrite storage");
+    }
+  } else {
+    imageUrl = 'https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg';
+    console.warn("No image file provided or file is empty.");
+  }
+  
+
+  // Create a new document in Appwrite database
+  try {
+    await database.createDocument(
+      process.env.DATABASE_ID!,              // Your Appwrite database ID
+      process.env.ITEMS_COLLECTION_ID!,      // Your collection ID
+      'unique()',                            // Unique document ID
+      {
+        itemName,
+        description,
+        totalQuantity,
+        availableQuantity,
+        society,
+        council,
+        defaultStatus,
+        itemImage: imageUrl,// Store the image URL in the database
+        maxQuantity,
+        maxTime,                  
+        addedBy: user.email                 // Use the correct user ID property
+      }
+    );
+
+    console.log("Inventory item created successfully.");
+    revalidatePath('/add-item');
+  } catch (error) {
+    console.error("Failed to create inventory item:", error);
+    throw new Error("Failed to create inventory item");
+  }
+
+  redirect("/inventory");
 }

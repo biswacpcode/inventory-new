@@ -1,6 +1,6 @@
 'use server'
 import { ID, Models, Query } from "node-appwrite";
-import { database } from "../appwrite.config";
+import { database, storage } from "../appwrite.config";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth";
 import { getUser, getUserId } from "../action";
@@ -543,4 +543,117 @@ export async function ReadAllCourtRequests(){
     console.error("Failed to fetch all Court Requests : ", error);
     throw new Error ("Failed to fetch all Court Requests")
   }
+}
+
+
+// Create Courts
+export async function CreateInventoryCourt(formdata: FormData) {
+  // VERIFYING USER
+  const user = await getUser();
+
+  if (!user) {
+    redirect("/");
+    return;
+  }
+
+  // EXTRACTING FORM DATA
+  const courtName = formdata.get("court-name") as string;
+  const courtImage = formdata.get("courtImage") as File;
+  const location = formdata.get("court-location") as string;
+  const type = formdata.get("type") as string;
+  const maxTime = parseInt(formdata.get("max-time") as string, 10);
+  const minUsers = parseInt(formdata.get("min-users") as string, 10);
+  const timeSlotsRaw = formdata.get("time-slots") as string;
+
+  let courtImageUrl = "";
+
+  // HANDLE IMAGE UPLOAD TO APPWRITE STORAGE
+  if (courtImage && courtImage.size > 0) {
+    try {
+      const response = await storage.createFile(
+        process.env.BUCKET_ID!, // Your Appwrite bucket ID
+        "unique()",             // Unique file ID
+        courtImage              // The file to be uploaded
+      );
+
+      // Construct the URL to access the file
+      courtImageUrl = `https://cloud.appwrite.io/v1/storage/buckets/${process.env.BUCKET_ID}/files/${response.$id}/view?project=${process.env.PROJECT_ID}`;
+
+      console.log("Court image uploaded successfully:", courtImageUrl);
+    } catch (error) {
+      console.error("Error uploading court image to Appwrite storage:", error);
+      throw new Error("Failed to upload court image");
+    }
+  } else {
+    courtImageUrl = "https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg";
+    console.warn("No court image provided or file is empty.");
+  }
+
+  // PARSE TIME SLOTS
+  // Expected format: "Monday: 05:00-10:00, 17:00-21:00; Tuesday: 05:00-10:00, 17:00-21:00"
+  const timeSlots: Record<string, string[]> = {};
+
+  if (timeSlotsRaw) {
+    console.log("raw entry passed");
+    const days = timeSlotsRaw.split(";");
+    console.log(days);
+    days.forEach((day) => {
+      const [dayName, slots] = day.split(":-");
+      console.log([dayName,slots]);
+      if (dayName && slots) {
+        const trimmedDay = dayName.trim();
+        const slotArray = slots
+          .split(",")
+          .map((slot) => slot.trim())
+          .filter((slot) => /^\d{2}:\d{2}-\d{2}:\d{2}$/.test(slot)); // Basic validation
+        if (slotArray.length > 0) {
+          timeSlots[trimmedDay] = slotArray;
+        }
+      }
+    });
+  }
+
+  // VALIDATE TIME SLOTS
+  if (Object.keys(timeSlots).length === 0) {
+    throw new Error("Invalid or missing time slots format.");
+  }
+
+  // CREATE COURT DOCUMENT IN APPWRITE DATABASE
+  try {
+    await database.createDocument(
+      process.env.DATABASE_ID!,            // Your Appwrite database ID
+      process.env.COURTS_COLLECTION_ID!,   // Your courts collection ID
+      "unique()",                          // Unique document ID
+      {
+        courtName,
+        courtImage: courtImageUrl,
+        location,
+        type,
+        maxTime,
+        minUsers,
+        timeSlots: JSON.stringify(timeSlots), // Store as JSON string
+        addedBy: user.email,                    // Use the correct user ID property
+      }
+    );
+
+    console.log("Court created successfully.");
+    // Optionally, revalidate paths or perform other actions
+  } catch (error) {
+    console.error("Failed to create court:", error);
+    throw new Error("Failed to create court");
+  }
+// console.log(
+//   {
+//           courtName,
+//           courtImage: courtImageUrl,
+//          location,
+//           totalCourts,
+//           maxTime,
+//           minUsers,
+//           timeSlots: JSON.stringify(timeSlots), // Store as JSON string
+//          addedBy: user.id,                    // Use the correct user ID property
+//        }
+
+
+  redirect("/inventory");
 }
