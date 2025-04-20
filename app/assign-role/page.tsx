@@ -43,16 +43,16 @@ export default function AssignRolesPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<string>("");
 
-//   async function checkAuthorization() {
-//     const isAdmin = await checkRole("Admin");
-//     if (!isAdmin) {
-//       alert("You are unauthorized.");
-//       // Redirect if unauthorized
-//       window.location.href = process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_URL!;
-//     } else {
-//       fetchUsers(); // Fetch data if authorized
-//     }
-//   }
+  async function checkAuthorization() {
+    // const isAdmin = await checkRole("Admin");
+    // if (!isAdmin) {
+    //   alert("You are unauthorized.");
+    //   // Redirect if unauthorized
+    //   window.location.href = process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_URL!;
+    // } else {
+      fetchUsers(); // Fetch data if authorized
+    // }
+  }
 
   async function fetchUsers() {
     const fetchedUsers = await ReadAllUsersByRoleOrSearch(searchTerm);
@@ -74,9 +74,9 @@ export default function AssignRolesPage() {
 
   }
 
-//   useEffect(() => {
-//     checkAuthorization();
-//   }, []);
+  useEffect(() => {
+    checkAuthorization();
+  }, []);
   
 
   return (

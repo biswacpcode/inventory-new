@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { ApproveBookingRequest, DeleteBookingRequest, ReadBookedItembyId } from "@/lib/items/item"
+import { ReadCourtRequest, updateCourtRequestStatus } from "@/lib/courts/court"
 //import { DeleteBookingRequest, ReadBookedItembyId, ReadCourtRequest, updateCourtRequestStatus } from "@/lib/actions"
 
 interface QRData {
@@ -155,6 +156,19 @@ export default function ManagerPortalPage() {
            (status !== "returned" && status !== "damaged&returned");
   };
 
+  function isWithin15Minutes(start: string, createdAt: string, status: string): boolean {
+    const now = new Date(); // current time in local timezone (IST on your phone/browser)
+  
+    const createdDate = new Date(createdAt);
+    const startDate = new Date(start);
+  
+    const diffCreated = Math.abs(now.getTime() - createdDate.getTime());
+    const diffStart = Math.abs(now.getTime() - startDate.getTime());
+    const fifteenMinutes = 15 * 60 * 1000; // milliseconds
+  
+    return (diffCreated <= fifteenMinutes || diffStart <= fifteenMinutes || status === "punched-in" ) && (status !== "punched-out" && status!=="late");
+  }
+
   const handleQRCodeData = async (data: string) => {
     try {
       const parsedData: QRData = JSON.parse(data)
@@ -165,38 +179,27 @@ export default function ManagerPortalPage() {
       const qrTime = new Date(parsedData.time)
 
       if (parsedData.type === "court") {
-        // Check if scan is 15+ minutes after start time
-        // const courtInfo = await ReadCourtRequest(parsedData.id);
-        // const start = courtInfo.start;
-        // const createdAt = courtInfo.createdAt;
-        // const status = courtInfo.status;
+        //Check if scan is 15+ minutes after start time
+        const courtInfo = await ReadCourtRequest(parsedData.id);
+        const start = courtInfo.start;
+        const createdAt = courtInfo.createdAt;
+        const status = courtInfo.status;
 
-        // function isWithin15Minutes(): boolean {
-        //     const now = new Date(); // current time in local timezone (IST on your phone/browser)
-          
-        //     const createdDate = new Date(createdAt);
-        //     const startDate = new Date(start);
-          
-        //     const diffCreated = Math.abs(now.getTime() - createdDate.getTime());
-        //     const diffStart = Math.abs(now.getTime() - startDate.getTime());
-        //     const fifteenMinutes = 15 * 60 * 1000; // milliseconds
-          
-        //     return (diffCreated <= fifteenMinutes || diffStart <= fifteenMinutes || status === "punched-in" ) && (status !== "punched-out" && status!=="late");
-        //   }
-        // if (!isWithin15Minutes()) {
-        //     setScanResult({
-        //         success: false,
-        //         message: "Court check-in rejected. You are more than 15 minutes late.",
-        //       });
-        //       setDialogOpen(true);
-        // } else {
-        //     setScanResult({
-        //         success: true,
-        //         message: `Court ${status==="reserved"? 'check in' : 'checkout'} successful! Status updated to ${status==="reserved"? 'punched-in' : 'punched-out'}.`,
-        //       });
-        //       setDialogOpen(true);
-        //       updateCourtRequestStatus(parsedData.id);
-        // }
+
+        if (!isWithin15Minutes(start, createdAt, status)) {
+            setScanResult({
+                success: false,
+                message: "Court check-in rejected. You are more than 15 minutes late.",
+              });
+              setDialogOpen(true);
+        } else {
+            setScanResult({
+                success: true,
+                message: `Court ${status==="reserved"? 'check in' : 'checkout'} successful! Status updated to ${status==="reserved"? 'punched-in' : 'punched-out'}.`,
+              });
+              setDialogOpen(true);
+              updateCourtRequestStatus(parsedData.id);
+        }
       } else if (parsedData.type === "item") {
         // Check if scan is 10+ minutes after request time
 

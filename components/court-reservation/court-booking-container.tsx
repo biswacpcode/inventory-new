@@ -7,10 +7,14 @@ import CourtDetails from "./court-details"
 import BookingForm from "./booking-form"
 import LoadingSkeleton from "./loading-skeleton"
 import { ReadCourtById } from "@/lib/courts/court"
+import { getUser } from "@/lib/action"
 
 interface User {
-  id: string
-  email: string
+  name: string | null | undefined;
+    email: string | null | undefined;
+    image: string | null | undefined;
+    id: string;
+
 }
 
 export default function CourtBookingContainer({ courtId }: { courtId: string }) {
@@ -41,13 +45,10 @@ export default function CourtBookingContainer({ courtId }: { courtId: string }) 
 
     async function fetchUser() {
       try {
-        const response = await fetch("/api/user-info", {
-          method: "POST",
-        })
-        const data = await response.json()
-        if (data.user) {
-          setUser(data.user)
-          setUserId(data.userId)
+        const user = await getUser();
+        if (user) {
+          setUser(user)
+          setUserId(user.id)
         }
       } catch (error) {
         console.error("Failed to fetch user info:", error)

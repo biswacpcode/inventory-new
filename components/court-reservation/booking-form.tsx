@@ -23,13 +23,15 @@ import { Loader2 } from "lucide-react"
 import {
   ReadCourtBookingsByCourtTypeAndDate,
   GenerateAvailableTimeSlots,
-  ReadUserByEmail,
   CreateCourtRequest,
 } from "@/lib/courts/court"
+import { ReadUserByEmail } from "@/lib/action"
 
 interface User {
-  id: string
-  email: string
+  name: string | null | undefined;
+    email: string | null | undefined;
+    image: string | null | undefined;
+    id: string;
 }
 
 interface BookingFormProps {
@@ -41,6 +43,12 @@ interface BookingFormProps {
   router: AppRouterInstance
 }
 
+interface CanReserve{
+  canReserve: boolean
+  message: string
+}
+
+
 export default function BookingForm({ court, user, userId, permission, setPermission, router }: BookingFormProps) {
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), "yyyy-MM-dd"))
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([])
@@ -51,6 +59,7 @@ export default function BookingForm({ court, user, userId, permission, setPermis
   const [isUpdating, setIsUpdating] = useState(false)
   const [maxComp, setMaxComp] = useState<number>(0)
   const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false)
+  const [canReserve, SetCanReserve] = useState<CanReserve>({canReserve: true, message: ""})
 
   useEffect(() => {
     if (court) {
@@ -64,16 +73,23 @@ export default function BookingForm({ court, user, userId, permission, setPermis
         setIsLoadingTimeSlots(true)
         try {
           const slots = await GenerateAvailableTimeSlots(court.$id, selectedDate)
+          console.log("Fetched Slots for today is : ", slots)
 
-          const now = new Date()
-          const currentISTTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
-            .toTimeString()
-            .slice(0, 8)
+          const now = new Date();
+          const currentIST = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
 
           const filteredSlots = slots.filter((slot) => {
-            const [, endTime] = slot.split(" - ")
-            return endTime > currentISTTime
-          })
+            const [, endTime] = slot.split(" - ");
+            
+            // Construct a Date object for the slot end time on the selected date
+            const [endHour, endMinute, endSecond] = endTime.split(":").map(Number);
+            const slotEnd = new Date(currentIST);
+            slotEnd.setHours(endHour, endMinute, endSecond, 0);
+
+            return slotEnd > currentIST;
+          });
+
+          console.log("filtered slots for today is : ", filteredSlots);
 
           if (format(now, "yyyy-MM-dd") === selectedDate) {
             setAvailableTimeSlots(filteredSlots)
@@ -154,13 +170,16 @@ export default function BookingForm({ court, user, userId, permission, setPermis
         const companionUser = await ReadUserByEmail(email)
         if (companionUser) {
           if (companionUserIds.includes(companionUser.$id)) {
+            SetCanReserve( { canReserve: false, message: `You are trying to add duplicate email addresses` } )
             return { canReserve: false, message: `You are trying to add duplicate email addresses` }
           }
           companionUserIds.push(companionUser.$id)
         } else {
+          SetCanReserve ({ canReserve: false, message: `User with email ${email} not found.` })
           return { canReserve: false, message: `User with email ${email} not found.` }
         }
       } else {
+        SetCanReserve ({ canReserve: false, message: `You cannot add your own email as a companion` })
         return { canReserve: false, message: `You cannot add your own email as a companion` }
       }
     }
@@ -174,6 +193,10 @@ export default function BookingForm({ court, user, userId, permission, setPermis
           allUserIds.includes(booking.requestedUser) ||
           booking.companions.split(",").some((comp: string) => allUserIds.includes(comp))
         ) {
+          SetCanReserve ({
+            canReserve: false,
+            message: "You or your companions have an ongoing reservation. Please wait until it is completed.",
+          })
           return {
             canReserve: false,
             message: "You or your companions have an ongoing reservation. Please wait until it is completed.",
@@ -181,9 +204,14 @@ export default function BookingForm({ court, user, userId, permission, setPermis
         }
       }
     }
+    SetCanReserve({ canReserve: true, message: "No ongoing reservations." })
 
     return { canReserve: true, message: "No ongoing reservations." }
   }
+
+  useEffect(()=>{
+    checkReservations(userId!, companionEmails, selectedDate);
+  }, [court, user, userId, companionEmails])
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -200,19 +228,13 @@ export default function BookingForm({ court, user, userId, permission, setPermis
     }
 
     if (!permission) {
-      alert("You have one reservation already")
-      router.push("/inventory")
+      SetCanReserve({canReserve: false, message: "You Have one reservation already!"});
       return
     }
 
     setIsSubmitting(true)
 
     try {
-      const canReserve = await checkReservations(userId!, companionEmails, selectedDate)
-      if (!canReserve.canReserve) {
-        alert(canReserve.message)
-        return
-      }
 
       const companionUserIds: string[] = []
       for (const email of companionEmails) {
@@ -235,7 +257,7 @@ export default function BookingForm({ court, user, userId, permission, setPermis
         type: court.type,
       })
 
-      router.push("/requests")
+      router.push("/requests?type=courts")
     } catch (error: any) {
       console.error("Error reserving court:", error)
       alert(error.message || "An unexpected error occurred. Please try again.")
@@ -304,7 +326,7 @@ export default function BookingForm({ court, user, userId, permission, setPermis
           <Button
             type="submit"
             className="w-full"
-            disabled={isSubmitting || !permission || !selectedTimeSlot}
+            disabled={isSubmitting || !permission || !selectedTimeSlot || !canReserve.canReserve}
             title={!permission ? "You already have one reserved court" : "Reserve Court"}
           >
             {isSubmitting ? (
@@ -316,6 +338,10 @@ export default function BookingForm({ court, user, userId, permission, setPermis
               "Reserve Court"
             )}
           </Button>
+          {!canReserve.canReserve && 
+          <p className="text-muted-foreground text-sm">{canReserve.message}</p>
+          
+          }
         </form>
       </CardContent>
     </Card>

@@ -9,13 +9,15 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Trash2 } from "lucide-react"
 import { formatISTDateTime } from "@/lib/utils"
+import { toast } from "@/hooks/use-toast"
+import { ReadCourtRequestsByRequestedBy } from "@/lib/courts/court"
 
 type CourtRequest = {
-  id: string
-  courtId: string
-  courtName: string
-  startDateTime: Date
-  endDateTime: Date
+  $id: string;
+    courtId: any;
+    courtName: any;
+    startDateTime: any;
+    endDateTime: any;
   status: "reserved" | "punched-in" | "late"
 }
 
@@ -26,6 +28,7 @@ interface CourtsRequestsTableProps {
 
 export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRequestsTableProps) {
   const [requests, setRequests] = useState<CourtRequest[]>([])
+  const [filteredRequests, setFilteredRequests] = useState<CourtRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
 
@@ -44,56 +47,58 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
   }, [])
 
   useEffect(() => {
-    // Simulate data fetching
-    const fetchRequests = async () => {
-      setLoading(true)
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Mock data
-      const mockRequests: CourtRequest[] = [
-        {
-          id: "1",
-          courtId: "1",
-          courtName: "Basketball Court",
-          startDateTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          endDateTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000),
-          status: "reserved",
-        },
-        {
-          id: "2",
-          courtId: "2",
-          courtName: "Tennis Court",
-          startDateTime: new Date(),
-          endDateTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
-          status: "punched-in",
-        },
-        {
-          id: "3",
-          courtId: "3",
-          courtName: "Badminton Court",
-          startDateTime: new Date(Date.now() - 1 * 60 * 60 * 1000),
-          endDateTime: new Date(Date.now() + 1 * 60 * 60 * 1000),
-          status: "late",
-        },
-      ]
-
-      // Filter requests based on search query if provided
-      const filteredRequests = searchQuery
-        ? mockRequests.filter((request) => request.courtName.toLowerCase().includes(searchQuery.toLowerCase()))
-        : mockRequests
-
-      setRequests(filteredRequests)
-      setLoading(false)
+      const fetchRequests = async () => {
+        setLoading(true)
+        try {
+          const response = await ReadCourtRequestsByRequestedBy();
+          const data = response.reverse();
+          setRequests(data)
+          setFilteredRequests(data)
+        } catch (err) {
+          console.error("Error fetching item requests", err)
+        } finally {
+          setLoading(false)
+        }
+      }
+  
+      fetchRequests()
+    }, [])
+  
+    useEffect(() => {
+      if (!searchQuery.trim()) {
+        setFilteredRequests(requests)
+      } else {
+        setFilteredRequests(
+          requests.filter((req) =>
+            req.courtName.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        )
+      }
+    }, [searchQuery, requests])
+    const handleDelete = async (id: string) => {
+      const updated = filteredRequests.filter((request) => request.$id !== id)
+      setRequests(updated)
+      setFilteredRequests(updated)
+      try{
+        const deletionPromise = true//DeleteBookingRequest(id, itemId, bookedQuantity);
+        await deletionPromise;
+        toast({
+                title: "Booking Deleted Successfully!",
+                description: "Head for another Boooking?",
+              })
+      }catch (error) {
+        console.error("Deletion failed:", error);
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: "There was a problem with your request.\nPlease the store admin for assistance",
+        })
+        // Optionally: Revert optimistic update if deletion fails
+        setRequests((prev) => [...prev, filteredRequests.find((req) => req.$id === id)!]);
+        setFilteredRequests((prev) => [...prev, filteredRequests.find((req) => req.$id === id)!]);
+      }
+      
     }
-
-    fetchRequests()
-  }, [searchQuery])
-
-  const handleDelete = (id: string) => {
-    setRequests(requests.filter((request) => request.id !== id))
-  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -179,11 +184,11 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
   if (isMobile) {
     return (
       <div className="grid gap-4">
-        {requests.map((request) => (
-          <Card key={request.id}>
+        {filteredRequests.reverse().map((request) => (
+          <Card key={request.$id}>
             <CardHeader className="pb-2">
               <CardTitle>
-                <Link href={`/requests/court/${request.id}`} className="hover:underline">
+                <Link href={`/requests/court/${request.$id}`} className="hover:underline">
                   {request.courtName}
                 </Link>
               </CardTitle>
@@ -202,7 +207,7 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
                   <Badge className={getStatusColor(request.status)}>
                     {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                   </Badge>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(request.id)}>
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(request.$id)}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -227,10 +232,10 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
           </TableRow>
         </TableHeader>
         <TableBody>
-          {requests.map((request) => (
-            <TableRow key={request.id}>
+          {filteredRequests.reverse().map((request) => (
+            <TableRow key={request.$id}>
               <TableCell>
-                <Link href={`/requests/court/${request.id}`} className="hover:underline">
+                <Link href={`/requests/court/${request.$id}`} className="hover:underline">
                   {request.courtName}
                 </Link>
               </TableCell>
@@ -242,7 +247,7 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
                 </Badge>
               </TableCell>
               <TableCell>
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(request.id)}>
+                <Button variant="ghost" size="icon" onClick={() => handleDelete(request.$id)}>
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </TableCell>

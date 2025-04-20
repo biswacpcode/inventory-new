@@ -1,5 +1,5 @@
 'use server'
-import { ID, Query } from "node-appwrite";
+import { ID, Models, Query } from "node-appwrite";
 import { database} from "./appwrite.config";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
@@ -119,6 +119,25 @@ export async function ReadUserById(userId: string) {
   }
 }
 
+//Read user by email
+export async function ReadUserByEmail(email: string): Promise<Models.Document | null> {
+  try {
+    const users = await database.listDocuments(
+      DATABASE_ID!,
+      USER_COLLECTION!,
+      [Query.equal("email", [email])]
+    );
+
+    if (users.total > 0) {
+      return users.documents[0];
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching user by email:", error);
+    throw new Error("Failed to fetch user by email.");
+  }
+}
 
 
 /// Read All Role Users / Searched user.

@@ -7,7 +7,7 @@ import { getUser, getUserId } from "../action";
 import { redirect } from "next/navigation";
 import { addMinutes } from "date-fns";
 const {
-    DATABASE_ID, COURTS_COLLECTION_ID,
+    DATABASE_ID, COURTS_COLLECTION_ID,COURTBOOKINGS_COLLECTION_ID
 } = process.env;
 
 //Reading all the courts for the /inventory page
@@ -152,25 +152,7 @@ const bookings = await database.listDocuments(
   }
 }
 
-//Read user by email
-export async function ReadUserByEmail(email: string): Promise<Models.Document | null> {
-  try {
-    const users = await database.listDocuments(
-      process.env.DATABASE_ID!,
-      process.env.USERS_COLLECTION_ID!,
-      [Query.equal("email", [email])]
-    );
 
-    if (users.total > 0) {
-      return users.documents[0];
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error("Error fetching user by email:", error);
-    throw new Error("Failed to fetch user by email.");
-  }
-}
 
 //Creating the Court Booking Request
 
@@ -340,4 +322,170 @@ export async function GenerateAvailableTimeSlots(
   });
 
   return availableSlots;
+}
+
+
+//Reading Court Requests as per Request id 
+
+export async function ReadCourtRequest(requestId: string){
+  const response = await database.getDocument(
+    DATABASE_ID!,
+    COURTBOOKINGS_COLLECTION_ID!,
+    requestId
+  );
+  const request = {
+    $id:response.$id,
+    courtName: response.courtName,
+    start: response.start,
+    end: response.end,
+    companions:response.companions,
+    status: response.status,
+    requestedUser: response.requestedUser,
+    createdAt: response.$createdAt
+  }
+  return request;
+}
+
+//Updating COurt requests
+
+export async function updateCourtRequestStatus(requestId: string) {
+  try {
+    const response = await database.getDocument(
+      DATABASE_ID!,
+      COURTBOOKINGS_COLLECTION_ID!,
+      requestId
+    );
+
+    const currentTime = new Date().toISOString();
+
+
+    const status =
+      response.status === "reserved"
+        ? "punched-in"
+        : response.status === "punched-in"
+        ? "punched-out"
+        : "late";
+
+    await database.updateDocument(
+      DATABASE_ID!,
+     COURTBOOKINGS_COLLECTION_ID!,
+      requestId,
+      {
+        status: status
+      }
+    );
+
+    if (status === "punched-in") {
+      await database.updateDocument(
+        DATABASE_ID!,
+        COURTBOOKINGS_COLLECTION_ID!,
+        requestId,
+        {
+          punchedInTime: currentTime
+        }
+      );
+    } else if (status === "punched-out") {
+      await database.updateDocument(
+        DATABASE_ID!,
+        COURTBOOKINGS_COLLECTION_ID!,
+        requestId,
+        {
+          punchedOutTime: currentTime
+        }
+      );
+    }
+  } catch (error) {
+    console.error("Failed to update the status of Court Request", error);
+    throw new Error("Failed to update the status of Court Request");
+  }
+}
+
+
+// Read Court Requests by requested ID
+export async function ReadCourtRequestsByRequestedBy() {
+  // VERIFYING USER
+  const user = await getUser();
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+  const userId = await getUserId(user.email!);
+// try {
+//   const bookings = await database.listDocuments(
+//     DATABASE_ID!,
+//     COURTS_COLLECTION_ID!,
+//     [
+//       Query.equal("status", ["reserved"]),
+//     ]
+//   );
+  
+//   const currentISTTime = new Date();
+//   currentISTTime.setMinutes(currentISTTime.getMinutes() + 330); // Convert UTC to IST
+//   99+9
+//   const currentDateIST = currentISTTime.toISOString().split("T-0")[0]; // Get current date in YYYY-MM-DD format
+  
+//   bookings.documents.forEach(async (booking) => {
+//     const bookingStartDate = new Date(booking.start);
+//     bookingStartDate.setMinutes(bookingStartDate.getMinutes());
+//     const bookingDate = bookingStartDate.toISOString().split("T")[0]; // Extract date in YYYY-MM-DD format
+//     const createdAt = new Date(booking.$createdAt);
+//     createdAt.setMinutes(createdAt.getMinutes() +330);
+//     //console.log({bookingStartDate, bookingDate, createdAt, condition:(currentISTTime.getTime() > createdAt.getTime() + 15 * 60 * 1000)});
+
+  
+//     if (
+//       bookingDate === currentDateIST && // Check if the booking is for today
+//       currentISTTime.getTime() > bookingStartDate.getTime() + 15 * 60 * 1000 // Check if the current time is more than 15 minutes late
+//       &&currentISTTime.getTime() > createdAt.getTime() + 10 * 60 * 1000
+//     ) {
+//       await database.updateDocument(
+//         DATABASE_ID!,
+//         COURTS_COLLECTION_ID!,
+//     booking.$id,
+//     {
+//       status:"late"
+//     }
+//       )
+//     }
+//   });
+  
+  
+// } catch (error) {
+//   console.error("Failed to read court booking requests:", error);
+//   throw new Error("Failed to read court booking requests");
+// }
+
+
+  try {
+    const allBookings = await database.listDocuments(
+      DATABASE_ID!,
+    COURTBOOKINGS_COLLECTION_ID!,
+      [
+        Query.equal("status", ["reserved", "punched-in", "late"]),
+        Query.limit(400) // This should be inside the same array
+      ]
+    );
+    
+    // Filter client-side
+    const bookings = allBookings.documents.filter(doc => 
+      doc.requestedUser === userId ||doc.companions.split(",").includes(userId)
+    );
+
+
+    const fetchBookings = bookings.map((booking)=>{
+      return {
+        $id: booking.$id,
+        courtId: booking.courtId,
+        courtName: booking.courtName,
+        startDateTime: booking.start,
+        endDateTime: booking.end,
+        status: booking.status
+      }
+    })
+
+    return fetchBookings;
+  } catch (error) {
+    console.error("Failed to read court booking requests:", error);
+    throw new Error("Failed to read court booking requests");
+  }
 }
