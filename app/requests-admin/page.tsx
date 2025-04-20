@@ -23,6 +23,7 @@ import {
   SelectItem,
 } from "@/components/ui/select"; // Import Select components
 import { ReadItemBookings } from "@/lib/items/item";
+import { formatISTDateTime } from "@/lib/utils";
 
 interface Request {
   $id: string;
@@ -280,8 +281,8 @@ export default function Component() {
                     {request.userEmail || <Loading />}
                   </TableCell>
                   <TableCell>{request.itemName}</TableCell>
-                  <TableCell>{request.start}</TableCell>
-                  <TableCell>{request.end}</TableCell>
+                  <TableCell>{ formatISTDateTime(new Date(request.start)) }</TableCell>
+                  <TableCell>{formatISTDateTime(new Date(request.end))}</TableCell>
                   <TableCell>{request.bookedQuantity}</TableCell>
                   <TableCell>
                     <Badge
