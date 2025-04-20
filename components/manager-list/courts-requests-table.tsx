@@ -159,9 +159,8 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
           <Card key={request.$id}>
             <CardHeader className="pb-2">
               <CardTitle>
-                <Link href={`/requests/court/${request.$id}`} className="hover:underline">
                   {request.courtName}
-                </Link>
+
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -202,9 +201,7 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
           {filteredRequests.map((request) => (
             <TableRow key={request.$id}>
               <TableCell>
-                <Link href={`/requests/court/${request.$id}`} className="hover:underline">
                   {request.courtName}
-                </Link>
               </TableCell>
               <TableCell>{formatISTDateTime(new Date(request.startDateTime))}</TableCell>
               <TableCell>{formatISTDateTime(new Date(request.endDateTime))}</TableCell>
