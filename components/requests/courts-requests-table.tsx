@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Trash2 } from "lucide-react"
-import { formatISTDateTime } from "@/lib/utils"
+import { formatDateTime, formatISTDateTime } from "@/lib/utils"
 import { toast } from "@/hooks/use-toast"
 import { DeleteCourtBookingRequest, ReadCourtRequestsByRequestedBy } from "@/lib/courts/court"
 
@@ -197,11 +197,11 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
               <div className="grid gap-2">
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Start:</span>
-                  <span className="text-sm">{formatISTDateTime(new Date(request.startDateTime))}</span>
+                  <span className="text-sm">{formatDateTime(request.startDateTime)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">End:</span>
-                  <span className="text-sm">{formatISTDateTime(new Date(request.endDateTime))}</span>
+                  <span className="text-sm">{formatDateTime(request.endDateTime)}</span>
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <Badge className={getStatusColor(request.status)}>
@@ -239,8 +239,8 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
                   {request.courtName}
                 </Link>
               </TableCell>
-              <TableCell>{formatISTDateTime(new Date(request.startDateTime))}</TableCell>
-              <TableCell>{formatISTDateTime(new Date(request.endDateTime))}</TableCell>
+              <TableCell>{formatDateTime(request.startDateTime)}</TableCell>
+              <TableCell>{formatDateTime(request.endDateTime)}</TableCell>
               <TableCell>
                 <Badge className={getStatusColor(request.status)}>
                   {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
