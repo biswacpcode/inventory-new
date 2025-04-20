@@ -22,7 +22,7 @@ export async function ReadInventoryItems() {
         ITEMS_COLLECTION_ID!,
       );
   
-      const items = documents.map((doc) => {
+      const items = documents.map( (doc) => {
         const {
           $id,
           itemName,
@@ -59,6 +59,62 @@ export async function ReadInventoryItems() {
       throw new Error("Unable to fetch inventory items");
     }
   }
+
+
+  export async function ReadInventoryItemsAdmin() {
+    const user = await getUser();
+    if (!user) return null;
+  
+    try {
+      const { documents } = await database.listDocuments(
+        DATABASE_ID!,
+        ITEMS_COLLECTION_ID!,
+      );
+  
+      // Map over documents and resolve all async operations with Promise.all
+      const items = await Promise.all(documents.map(async (doc) => {
+        const {
+          $id,
+          itemName,
+          itemImage,
+          totalQuantity = 0,
+          availableQuantity = 0,
+          damagedQuantity = 0,
+          description,
+          society,
+          council,
+          addedBy
+        } = doc;
+  
+        const societyName = await ReadUserById(society);
+        const councilName = await ReadUserById(council);
+  
+        return {
+          $id,
+          itemName,
+          itemImage,
+          totalQuantity,
+          availableQuantity,
+          damagedQuantity,
+          description,
+          society,
+          council,
+          societyName: `${societyName.firstName} ${societyName.lastName}`,
+          councilName: `${councilName.firstName} ${councilName.lastName}`,
+          addedBy,
+          issuedQuantity: totalQuantity - availableQuantity - damagedQuantity
+        };
+      }));
+  
+      console.log(`Fetched ${items.length} inventory items`);
+      return items;
+  
+    } catch (error) {
+      console.error("Error fetching inventory items:", error);
+      throw new Error("Unable to fetch inventory items");
+    }
+  }
+  
   
   // Reading Item as per Search Term
   export async function ReadItemByName( searchTerm: string) {

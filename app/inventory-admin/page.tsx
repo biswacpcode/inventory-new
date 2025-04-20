@@ -14,17 +14,24 @@ import Link from "next/link";
 import Loading from "../inventory/loading";
 import { Check, SearchIcon, X } from "lucide-react";
 import {Input} from "@/components/ui/input";
-import { DeleteInventoryItem, ReadInventoryItems, UpdateInventoryItem } from "@/lib/items/item";
+import { DeleteInventoryItem,  ReadInventoryItemsAdmin, UpdateInventoryItem } from "@/lib/items/item";
 import { DeleteCourtItem, ReadInventoryCourts } from "@/lib/courts/court";
 
 // Define the type for inventory item
 interface InventoryItem {
-    $id: string;
-    itemName: string;
-    totalQuantity: number;
-    availableQuantity: number;
-    issuedQuantity: number;
-    damagedQuantity: number;
+  $id: string;
+  itemName: any;
+  itemImage: any;
+  totalQuantity: any;
+  availableQuantity: any;
+  damagedQuantity: any;
+  description: any;
+  society: any;
+  council: any;
+  societyName: string;
+  councilName: string;
+  addedBy: any;
+  issuedQuantity: number;
   }
   
   // Define a type for the edited item
@@ -63,7 +70,7 @@ interface InventoryItem {
       }
     }
     async function fetchItems() {
-      const fetchedItems = await ReadInventoryItems();
+      const fetchedItems = (await ReadInventoryItemsAdmin());
       setItems(fetchedItems ?? []);
     }
 
@@ -84,7 +91,7 @@ interface InventoryItem {
         useEffect(()=>{
   // Fetch the inventory items when the component is mounted
     async function fetchItems() {
-      const fetchedItems = await ReadInventoryItems();
+      const fetchedItems = await ReadInventoryItemsAdmin();
       setItems(fetchedItems ?? []);
     }
 
@@ -199,11 +206,14 @@ interface InventoryItem {
 
     // Function to download data as CSV
     const handleDownloadCSV = () => {
-      const headers = ["Item Name", "Total Quantity", "Available Quantity", "Issued Quantity", "Damaged"];
+      const headers = ["Item Name", "Stock Entry","Society", "Council", "Total Quantity", "Available Quantity", "Issued Quantity", "Damaged", ];
       const csvRows = [
         headers.join(","), // Join headers with commas
         ...items.map(item => [
           item.itemName,
+          item.description,
+          item.societyName,
+          item.councilName,
           item.totalQuantity,
           item.availableQuantity,
           item.issuedQuantity,
