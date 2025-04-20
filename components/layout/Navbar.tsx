@@ -77,7 +77,7 @@ export default function Navbar() {
   const link = useMemo(() => {
     switch (role) {
       case "Society":
-        return "/item-requests";
+        return "/items-requests";
       case "Manager":
         return "/manager-portal";
       case "Admin":
