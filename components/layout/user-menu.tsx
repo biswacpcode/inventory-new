@@ -31,8 +31,10 @@ export default function UserMenu() {
         <DropdownMenuItem 
           className="cursor-pointer flex items-center gap-2 text-red-600"
           onClick={() => { 
+            router.push('/')
+            signOut()
             router.push('/');
-            signOut()}}
+          }}
         >
           <LogOut className="h-4 w-4" />
           <span>Sign out</span>
