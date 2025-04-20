@@ -74,30 +74,6 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
         )
       }
     }, [searchQuery, requests])
-    const handleDelete = async (id: string) => {
-      const updated = filteredRequests.filter((request) => request.$id !== id)
-      setRequests(updated)
-      setFilteredRequests(updated)
-      try{
-        const deletionPromise = DeleteCourtBookingRequest(id);
-        await deletionPromise;
-        toast({
-                title: "Booking Deleted Successfully!",
-                description: "Head for another Boooking?",
-              })
-      }catch (error) {
-        console.error("Deletion failed:", error);
-        toast({
-          variant: "destructive",
-          title: "Uh oh! Something went wrong.",
-          description: "There was a problem with your request.\nPlease the store admin for assistance",
-        })
-        // Optionally: Revert optimistic update if deletion fails
-        setRequests((prev) => [...prev, filteredRequests.find((req) => req.$id === id)!]);
-        setFilteredRequests((prev) => [...prev, filteredRequests.find((req) => req.$id === id)!]);
-      }
-      
-    }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -143,7 +119,6 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
               <TableHead>Start Date/Time</TableHead>
               <TableHead>End Date/Time</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -160,9 +135,6 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
                 </TableCell>
                 <TableCell>
                   <Skeleton className="w-20 h-6" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="w-8 h-8 rounded-full" />
                 </TableCell>
               </TableRow>
             ))}
@@ -206,9 +178,6 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
                   <Badge className={getStatusColor(request.status)}>
                     {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                   </Badge>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(request.$id)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -227,7 +196,6 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
             <TableHead>Start Date/Time</TableHead>
             <TableHead>End Date/Time</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -244,11 +212,6 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
                 <Badge className={getStatusColor(request.status)}>
                   {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                 </Badge>
-              </TableCell>
-              <TableCell>
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(request.$id)}>
-                  <Trash2 className="w-4 h-4" />
-                </Button>
               </TableCell>
             </TableRow>
           ))}
