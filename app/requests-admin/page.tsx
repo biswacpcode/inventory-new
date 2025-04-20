@@ -35,6 +35,7 @@ interface Request {
   status: any;
   receivedAt: string;
   returnedAt: string;
+  userEmail: string
 }
 
 interface User {
@@ -274,7 +275,7 @@ export default function Component() {
                   className="border-b border-gray-200 hover:bg-muted"
                 >
                   <TableCell>
-                    {users[request.requestedBy]?.email || <Loading />}
+                    {request.userEmail || <Loading />}
                   </TableCell>
                   <TableCell>{request.itemName}</TableCell>
                   <TableCell>{request.start}</TableCell>

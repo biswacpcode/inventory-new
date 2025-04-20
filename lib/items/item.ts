@@ -231,14 +231,7 @@ export async function ReadInventoryItems() {
           // If more than 10 minutes old and not already "late", update the status
           if (diffInMinutes > 10 && doc.status !== "late") {
             try {
-              await database.updateDocument(
-                DATABASE_ID!,
-                BOOKINGS_COLLECTION_ID!,
-                doc.$id,
-                { status: "late" }
-              );
-
-              DeleteBookingRequest
+              ApproveBookingRequest(doc.$id, "late")
               doc.status = "late"; // Update local value too
             } catch (updateError) {
               console.error(`Failed to update status for ${doc.$id}:`, updateError);
@@ -905,3 +898,4 @@ export async function ModifyInventoryItem(itemId: string, formdata: FormData) {
     throw new Error("Failed to modify inventory");
   }
 }
+
