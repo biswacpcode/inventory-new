@@ -33,19 +33,17 @@ export const formatISTDateTime = (date: Date) =>
     minute: "2-digit",
     hour12: true,
   })
-
   export function formatDateTime(isoString: string): string {
     const date = new Date(isoString);
-  
-    
-  
-    return date.toLocaleString("en-IN", {
-      timeZone: "Asia/Kolkata",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
       hour12: true,
-    })
+      timeZone: 'UTC',              // <-- this is the key
+      timeZoneName: 'short',
+    };
+    return date.toLocaleString('en-IN', options);
   }
