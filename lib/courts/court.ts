@@ -357,9 +357,9 @@ export async function updateCourtRequestStatus(requestId: string, newStatus?:str
     );
 
     const currentTime = new Date().toISOString();
+    console.log("New Status to updated : ", newStatus)
 
-
-    const status = newStatus ||
+    const status = newStatus ? newStatus : 
       response.status === "reserved"
         ? "punched-in"
         : response.status === "punched-in"
