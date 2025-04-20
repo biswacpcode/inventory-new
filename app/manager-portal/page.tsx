@@ -151,9 +151,13 @@ export default function ManagerPortalPage() {
     const createdDate = new Date(start);
     const diffCreated = Math.abs(now.getTime() - createdDate.getTime());
     const tenMinutes = 10 * 60 * 1000;
+
+    if(process.env.NEXT_PUBLIC_URL==="https://inventory-iitbbs.webnd-iitbbs.org")
+      return true;
   
     return (diffCreated <= tenMinutes || status === "collected") &&
            (status !== "returned" && status !== "damaged&returned");
+    
   };
 
   function isWithin15Minutes(start: string, createdAt: string, status: string): boolean {
