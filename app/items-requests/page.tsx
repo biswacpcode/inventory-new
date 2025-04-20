@@ -44,6 +44,7 @@ export default function Page() {
   }
 
   async function fetchItems() {
+    setLoading(true);
     try {
       const fetchedItems = await ReadBookingItemsByRequestedTo();
       setItems(fetchedItems);

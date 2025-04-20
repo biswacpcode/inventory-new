@@ -589,21 +589,14 @@ export async function ReadBookingItemsByRequestedTo() {
   if (!user) {
     return redirect("/");
   }
-  const userId = await getUserId(user.email!);
+  const userId = user.id;
 
   try {
-
-    // fetch user from Appwrite
-    const fetchedUser = await database.getDocument(
-      process.env.DATABASE_ID!,
-      process.env.USERS_COLLECTION_ID!,
-      userId
-    )
     // Fetch booking items from Appwrite
     const response = await database.listDocuments(
       process.env.DATABASE_ID!,
       process.env.BOOKINGS_COLLECTION_ID!,
-      [Query.equal("requestedTo", [fetchedUser.id])]
+      [Query.equal("requestedTo", [userId])]
     );
 
 
@@ -613,7 +606,6 @@ export async function ReadBookingItemsByRequestedTo() {
     // Iterate over the fetched booking items
     for (const doc of response.documents) {
       // Fetch the corresponding inventory item to get the itemName
-      const inventoryItem = await ReadItemById(doc.itemId);
       const start = formatDateTime(doc.start);
       const end = formatDateTime(doc.end);
 
@@ -621,7 +613,7 @@ export async function ReadBookingItemsByRequestedTo() {
       const bookingItem = {
         $id: doc.$id,
         itemId: doc.itemId,
-        itemName: inventoryItem.itemName, // Adding itemName here
+        itemName: doc.itemName, // Adding itemName here
         start: start,
         end: end,
         purpose: doc.purpose,
