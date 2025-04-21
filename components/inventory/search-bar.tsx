@@ -10,11 +10,20 @@ interface SearchBarProps {
   setSearchTerm: (term: string) => void
   activeTab: string
   onReset?: () => void
+  onDeepSearch?: () => void
+  hasPerformedDeepSearch?: boolean
 }
 
-export function SearchBar({ searchTerm, setSearchTerm, activeTab, onReset }: SearchBarProps) {
+export function SearchBar({
+  searchTerm,
+  setSearchTerm,
+  activeTab,
+  onReset,
+  onDeepSearch,
+  hasPerformedDeepSearch
+}: SearchBarProps) {
   return (
-    <div className="mb-6">
+    <div className="mb-6 space-y-2">
       <div className="relative">
         <Input
           placeholder={`Search ${activeTab}`}
@@ -35,6 +44,16 @@ export function SearchBar({ searchTerm, setSearchTerm, activeTab, onReset }: Sea
             <span className="sr-only">Reset search</span>
           </Button>
         )}
+      </div>
+
+      <div className="text-right">
+        <Button
+          variant="secondary"
+          onClick={onDeepSearch}
+          disabled={hasPerformedDeepSearch}
+        >
+          Deep Search
+        </Button>
       </div>
     </div>
   )

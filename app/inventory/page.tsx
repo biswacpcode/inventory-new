@@ -135,6 +135,8 @@ export default function InventoryPage() {
         setSearchTerm={setSearchTerm}
         activeTab={activeTab}
         onReset={handleResetSearch}
+        onDeepSearch={handleDeepSearch}
+        hasPerformedDeepSearch={hasPerformedDeepSearch}
       />
 
       {/* Tabs */}

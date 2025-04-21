@@ -15,7 +15,7 @@ import UserMenu from "./user-menu";
 import { useEffect, useMemo, useState } from "react";  // Import useState
 import { ModeToggle } from "./ModeToggle";
 import Image from "next/image";
-import { CheckBlocked, GetRole } from "@/lib/action";
+import { CheckBlocked, checkExistence, GetRole } from "@/lib/action";
 import { useRouter } from "next/navigation";
 
 export default function Navbar() {
@@ -43,11 +43,17 @@ export default function Navbar() {
 
   useEffect(()=>{
     async function getRole(){
-      const role = await GetRole();
-      setRole(role);
+      if(session){
+        const response = await checkExistence(session?.user?.email!);
+        if (response){
+          const role = await GetRole();
+          setRole(role);
+        }
+      }
+       
     }
     getRole();
-  }, [role]);
+  }, [role, session]);
 
   useEffect(()=>{
     async function checkBlocked(){
