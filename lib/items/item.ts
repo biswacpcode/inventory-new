@@ -285,7 +285,7 @@ export async function ReadInventoryItems() {
           const diffInMinutes = (now.getTime() - createdAt.getTime()) / 60000;
   
           // If more than 10 minutes old and not already "late", update the status
-          if (diffInMinutes > 10 && doc.status !== "late" && process.env.NEXT_PUBLIC_URL!=="https://inventory-iitbbs.webnd-iitbbs.org") {
+          if (diffInMinutes > 10 && doc.status == "approved" && process.env.NEXT_PUBLIC_URL!=="https://inventory-iitbbs.webnd-iitbbs.org") {
             try {
               ApproveBookingRequest(doc.$id, "late")
               doc.status = "late"; // Update local value too

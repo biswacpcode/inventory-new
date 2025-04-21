@@ -223,6 +223,13 @@ export default function ManagerPortalPage() {
         const itemInfo = await ReadBookedItembyId(parsedData.id);
         const start = itemInfo.requestedAt;
         const status = itemInfo.status;
+        if (status === " returned" || status === "damaged&returned"){
+          setScanResult({
+            success: false,
+            message: "Item Recieve Approval Rejected! User is showing old and returned item! Ask them to re issue from portal!",
+          });
+          setDialogOpen(true);
+        }
 
         // Add url based division in logic
         if (!isWithin10Minutes(start, status)) {
