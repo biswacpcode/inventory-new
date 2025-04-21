@@ -85,11 +85,10 @@ export async function ReadInventoryItems() {
           description,
           society,
           council,
-          addedBy
+          addedBy,
+          societyName,
+          councilName
         } = doc;
-  
-        const societyName = await ReadUserById(society);
-        const councilName = await ReadUserById(council);
   
         return {
           $id,
@@ -101,8 +100,8 @@ export async function ReadInventoryItems() {
           description,
           society,
           council,
-          societyName: `${societyName.firstName} ${societyName.lastName}`,
-          councilName: `${councilName.firstName} ${councilName.lastName}`,
+          societyName,
+          councilName,
           addedBy,
           issuedQuantity: totalQuantity - availableQuantity - damagedQuantity
         };
