@@ -23,8 +23,8 @@ export function SearchBar({
   hasPerformedDeepSearch
 }: SearchBarProps) {
   return (
-    <div className="mb-6 space-y-2">
-      <div className="relative">
+    <div className="mb-6 flex items-center gap-4">
+      <div className="relative flex-1">
         <Input
           placeholder={`Search ${activeTab}`}
           value={searchTerm}
@@ -46,15 +46,13 @@ export function SearchBar({
         )}
       </div>
 
-      <div className="text-right">
-        <Button
-          variant="secondary"
-          onClick={onDeepSearch}
-          disabled={hasPerformedDeepSearch}
-        >
-          Deep Search
-        </Button>
-      </div>
+      <Button
+        variant="default"
+        onClick={onDeepSearch}
+        disabled={hasPerformedDeepSearch}
+      >
+        Deep Search
+      </Button>
     </div>
   )
 }
