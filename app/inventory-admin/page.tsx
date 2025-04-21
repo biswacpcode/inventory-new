@@ -90,35 +90,18 @@ interface InventoryItem {
 
         useEffect(()=>{
   // Fetch the inventory items when the component is mounted
-    async function fetchItems() {
-      const fetchedItems = await ReadInventoryItemsAdmin();
-      setItems(fetchedItems ?? []);
-    }
-
-    async function fetchCourts() {
-          try {
-            const inventoryCourts = await ReadInventoryCourts();
-            setCourts(inventoryCourts || []);
-          } catch (error) {
-            console.error("Failed to fetch courts:", error);
-          } finally {
-            setLoading("");
-          }
-        }
-
-        if (activeTab === "items") {
-          fetchItems();
-        } else if (activeTab === "courts") {
-          fetchCourts();
-        }
-
+  if (activeTab === "items") {
+    fetchItems();
+  } else if (activeTab === "courts") {
+    fetchCourts();
+  }
 
         }, [activeTab])
   
     // Use Effect hook to fetch inventory items on mount
-    useEffect(() => {
-      checkAuthorization();
-    }, []);
+    // useEffect(() => {
+    //   checkAuthorization();
+    // }, []);
   
     // Handle deletion of an item
     async function handleDelete(itemId: string) {

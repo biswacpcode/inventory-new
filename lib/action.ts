@@ -92,7 +92,6 @@ export async function CreateNewUser(name:string, email: string, image: string, r
 }
 
 export async function ReadUserById(userId: string) {
-  console.log(userId)
   // if (userId===null)
   //   return;
   try {
