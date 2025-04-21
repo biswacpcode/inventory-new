@@ -229,10 +229,7 @@ export default function ManagerPortalPage() {
             message: "Item Recieve Approval Rejected! User is showing old and returned item! Ask them to re issue from portal!",
           });
           setDialogOpen(true);
-        }
-
-        // Add url based division in logic
-        if (!isWithin10Minutes(start, status)) {
+        }else if (!isWithin10Minutes(start, status)) {
           setScanResult({
             success: false,
             message: "Item Recieve Approval Rejected! User is more than 10 minutes late or Item was returned or refused already!",
