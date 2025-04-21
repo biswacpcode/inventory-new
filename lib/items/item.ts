@@ -62,6 +62,7 @@ export async function ReadInventoryItems() {
 
 
   export async function ReadInventoryItemsAdmin() {
+
     const user = await getUser();
     if (!user) return null;
   
@@ -69,6 +70,7 @@ export async function ReadInventoryItems() {
       const { documents } = await database.listDocuments(
         DATABASE_ID!,
         ITEMS_COLLECTION_ID!,
+        [Query.limit(400)]
       );
   
       // Map over documents and resolve all async operations with Promise.all
