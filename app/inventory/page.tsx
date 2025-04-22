@@ -10,6 +10,8 @@ import { ItemSkeleton } from "@/components/inventory/item-skeleton"
 import { CourtSkeleton } from "@/components/inventory/court-skeleton"
 import { ReadInventoryItems, ReadItemByName } from "@/lib/items/item"
 import { EmptySearchResult } from "@/components/inventory/empty-search-result"
+import { CheckBlocked } from "@/lib/action"
+import { useRouter } from "next/navigation"
 // Define data types
 export interface InventoryItem {
   $id: string
@@ -37,6 +39,18 @@ export default function InventoryPage() {
   const [activeTab, setActiveTab] = useState<string>("items")
   const [isSearching, setIsSearching] = useState(false)
   const [hasPerformedDeepSearch, setHasPerformedDeepSearch] = useState(false)
+  const router = useRouter();
+  useEffect(()=>{
+      async function checkBlocked(){
+        const isBlocked = await CheckBlocked();
+        if (isBlocked)
+        {
+          alert("Your account has been blocked!!😭\nPlease contact office.sg@iitbbs.ac.in");
+          router.push('/');
+        }
+      }
+      checkBlocked();
+    }, []);
 
   // Fetch data based on active tab
   useEffect(() => {
