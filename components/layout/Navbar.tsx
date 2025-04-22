@@ -57,7 +57,7 @@ export default function Navbar() {
 
   useEffect(()=>{
     async function checkBlocked(){
-      const isBlocked = await CheckBlocked();
+      const isBlocked = await CheckBlocked(session?.user?.email!);
       if (isBlocked)
       {
         alert("Your account has been blocked!!😭\nPlease contact office.sg@iitbbs.ac.in");

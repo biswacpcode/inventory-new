@@ -251,7 +251,7 @@ export async function CheckBlocked(email?: string){
     const response = await database.listDocuments(
       DATABASE_ID!,
       BLOCKED_COLLECTION_ID!,
-      [Query.equal("email",[email || useremail!])]
+      [Query.equal("email",[(email ? email : useremail!)])]
     )
 
     if(response.total>0){
