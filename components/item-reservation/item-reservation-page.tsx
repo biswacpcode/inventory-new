@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ReadUserById } from "@/lib/action"
+import { CheckBlocked, ReadUserById } from "@/lib/action"
 import { useRouter } from "next/navigation"
 import ItemDetails from "./item-details"
 import BookingForm from "./booking-form"
@@ -14,6 +14,18 @@ export default function ItemReservationPage({ params }: { params: { id: string }
   const [councilName, setCouncilName] = useState<string>("")
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+
+  useEffect(()=>{
+        async function checkBlocked(){
+          const isBlocked = await CheckBlocked();
+          if (isBlocked)
+          {
+            alert("Your account has been blocked!!😭\nPlease contact office.sg@iitbbs.ac.in");
+            router.push('/');
+          }
+        }
+        checkBlocked();
+      }, []);
 
   useEffect(() => {
     async function fetchItem() {

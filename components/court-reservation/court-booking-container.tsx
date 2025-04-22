@@ -7,7 +7,7 @@ import CourtDetails from "./court-details"
 import BookingForm from "./booking-form"
 import LoadingSkeleton from "./loading-skeleton"
 import { ReadCourtById } from "@/lib/courts/court"
-import { getUser } from "@/lib/action"
+import { CheckBlocked, getUser } from "@/lib/action"
 
 interface User {
   name: string | null | undefined;
@@ -24,6 +24,18 @@ export default function CourtBookingContainer({ courtId }: { courtId: string }) 
   const [user, setUser] = useState<User | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [permission, setPermission] = useState<boolean>(true)
+
+  useEffect(()=>{
+        async function checkBlocked(){
+          const isBlocked = await CheckBlocked();
+          if (isBlocked)
+          {
+            alert("Your account has been blocked!!😭\nPlease contact office.sg@iitbbs.ac.in");
+            router.push('/');
+          }
+        }
+        checkBlocked();
+      }, []);
 
   useEffect(() => {
     async function fetchCourt() {
