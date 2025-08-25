@@ -42,7 +42,7 @@ export const formatISTDateTime = (date: Date) =>
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
-      timeZone: 'UTC',              // <-- this is the key
+      timeZone: "IST",         // <-- this is the key
       timeZoneName: 'short',
     };
     const result = date.toLocaleString('en-IN', options);
