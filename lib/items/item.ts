@@ -529,7 +529,35 @@ export async function returntimeUpdate(requestId: string, itemId: string, curren
     throw new Error("Failed to update returned time:");
 }
 }
-
+export async function rejectedItemUpdate(
+    itemId: string,
+    bookedQuantity: number
+  ) {
+    const user = await getUser();
+  
+    if (!user) redirect("/");
+    
+    try {
+      // Marking the document as rejected
+      const item = await ReadItemById(itemId);
+      const newAvailableQuantity = item.availableQuantity + bookedQuantity;
+  
+      // Update the item to increase available quantity
+      await database.updateDocument(
+        DATABASE_ID!,
+        ITEMS_COLLECTION_ID!, 
+        itemId, // Use itemId to identify the document
+        {
+          availableQuantity: newAvailableQuantity,
+        }
+      );
+  
+      revalidatePath(`/requests`);
+    } catch (error) {
+      console.error("Failed to mark booking request as rejected:", error);
+      throw new Error("Failed to mark booking request as rejected");
+    }
+  }
 
   //Read Booking Requests of items for the manager list
 

@@ -25,9 +25,9 @@ import { Badge } from "@/components/ui/badge";
 import {
   ApproveBookingRequest,
   DamagedQuantityUpdate,
-  DeleteBookingRequest,
   ReadBookedItembyId,
   receivetimeUpdate,
+  rejectedItemUpdate,
   returntimeUpdate,
 } from "@/lib/items/item";
 import { ReadUserById } from "@/lib/action";
@@ -104,10 +104,11 @@ export default function ManagerItemDetailPage({
           successMessage = `${request.itemName} has been marked as collected`;
           await receivetimeUpdate(requestId, currentTime);
           break;
-        case "refused":
-          successMessage = `${request.itemName} request has been refused`;
+        case "rejected":
+          successMessage = `${request.itemName} request has been rejected`;
           variant = "destructive";
-          DeleteBookingRequest(requestId, itemId, bookedQuantity);
+          // DeleteBookingRequest(requestId, itemId, bookedQuantity);
+          await rejectedItemUpdate(itemId, bookedQuantity);
           break;
         case "returned":
           successMessage = `${request.itemName} has been marked as returned${
@@ -129,11 +130,8 @@ export default function ManagerItemDetailPage({
         // bugfix: updating damagedCount only when damaged is chosen as true
         await DamagedQuantityUpdate(itemId, bookedQuantity);
       }
-      // test case 8
-      // if refused, doc is already deleted from db, so it cant be updated
-      if (newStatus !== "refused")
-        await ApproveBookingRequest(requestId, newStatus);
-      // await DamagedQuantityUpdate(itemId, bookedQuantity);
+
+      await ApproveBookingRequest(requestId, newStatus);
       toast({
         title: "Status Updated",
         description: successMessage,
@@ -306,7 +304,7 @@ export default function ManagerItemDetailPage({
                       onClick={() =>
                         updateItemStatus(
                           params.id,
-                          "refused",
+                          "rejected",
                           request.itemId,
                           request.bookedQuantity,
                           isDamaged
@@ -322,7 +320,7 @@ export default function ManagerItemDetailPage({
                       ) : (
                         <>
                           <X className="mr-2 h-4 w-4" />
-                          Refused
+                          Rejected
                         </>
                       )}
                     </Button>
