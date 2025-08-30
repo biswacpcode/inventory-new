@@ -66,7 +66,7 @@ export const formatISTDateTime = (date: Date) =>
 }
 
 export function formatDateTime2(isoString: string): string {
-  // Remove the timezone part so JS doesn't treat it as UTC
+  // Remove timezone info so JS doesn't convert it
   const cleanString = isoString.split("+")[0].split("Z")[0];
   const date = new Date(cleanString);
 
@@ -76,11 +76,12 @@ export function formatDateTime2(isoString: string): string {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    hour12: true,
+    second: "2-digit",
+    hour12: false, // 24-hour format
     timeZoneName: "short",
   };
 
-  // Use 'en-IN' locale
+  // Format without converting the time
   return date.toLocaleString("en-IN", options).replace("GMT+5:30", "IST");
 }
 

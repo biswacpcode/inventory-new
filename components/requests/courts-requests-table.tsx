@@ -53,8 +53,7 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
           const response = await ReadCourtRequestsByRequestedBy();
           const data = response.reverse();
           setRequests(data)
-          setFilteredRequests(data);
-          
+          setFilteredRequests(data); 
         } catch (err) {
           console.error("Error fetching item requests", err)
         } finally {
@@ -220,7 +219,8 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
     )
   }
 
-  console.log("Filtered request , ", formatDateTime(filteredRequests[0]?.startDateTime))
+  // console.log("Filtered request start , ", formatDateTime2(filteredRequests[0]?.startDateTime))
+  // console.log("Filtered request end , ", (filteredRequests[0]?.endDateTime))
 
   return (
     <div className="rounded-md border">
@@ -242,8 +242,8 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
                   {request.courtName}
                 </Link>
               </TableCell>
-              <TableCell>{formatDateTime(request.startDateTime)}</TableCell>
-              <TableCell>{formatDateTime(request.endDateTime)}</TableCell>
+              <TableCell>{formatDateTime2(request.startDateTime)}</TableCell>
+              <TableCell>{formatDateTime2(request.endDateTime)}</TableCell>
               <TableCell>
                 <Badge className={getStatusColor(request.status)}>
                   {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
