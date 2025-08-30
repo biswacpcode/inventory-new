@@ -326,6 +326,7 @@ function parseTime(time: string): Date {
 // }
 
 // fixed
+
 export async function GenerateAvailableTimeSlots(
   courtId: string,
   date: string
@@ -369,6 +370,8 @@ export async function GenerateAvailableTimeSlots(
       current = addMinutes(current, maxDuration);
     }
   });
+
+  console.log("Potential Slots Radhe Radhe: ", potentialSlots);
   
 
   // Fetch existing bookings for the court on the given date
@@ -403,6 +406,8 @@ export async function GenerateAvailableTimeSlots(
     if (potentialEndTime <= currentISTTime.getTime()) {
       return;
     }
+
+    console.log("Available slots: " , availableSlots)
 
     // Check overlap with existing bookings
     let overlap = false;

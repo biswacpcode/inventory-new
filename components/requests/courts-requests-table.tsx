@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Trash2 } from "lucide-react"
-import { formatDateTime, formatISTDateTime } from "@/lib/utils"
+import { formatDateTime, formatDateTime2, formatISTDateTime } from "@/lib/utils"
 import { toast } from "@/hooks/use-toast"
 import { DeleteCourtBookingRequest, ReadCourtRequestsByRequestedBy } from "@/lib/courts/court"
 
@@ -53,7 +53,8 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
           const response = await ReadCourtRequestsByRequestedBy();
           const data = response.reverse();
           setRequests(data)
-          setFilteredRequests(data)
+          setFilteredRequests(data);
+          
         } catch (err) {
           console.error("Error fetching item requests", err)
         } finally {
@@ -218,6 +219,8 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
       </div>
     )
   }
+
+  console.log("Filtered request , ", formatDateTime(filteredRequests[0]?.startDateTime))
 
   return (
     <div className="rounded-md border">

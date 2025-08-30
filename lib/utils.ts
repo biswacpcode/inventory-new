@@ -64,3 +64,23 @@ export const formatISTDateTime = (date: Date) =>
   };
   return date.toLocaleString("en-IN", options); 
 }
+
+export function formatDateTime2(isoString: string): string {
+  // Remove the timezone part so JS doesn't treat it as UTC
+  const cleanString = isoString.split("+")[0].split("Z")[0];
+  const date = new Date(cleanString);
+
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZoneName: "short",
+  };
+
+  // Use 'en-IN' locale
+  return date.toLocaleString("en-IN", options).replace("GMT+5:30", "IST");
+}
+
