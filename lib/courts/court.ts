@@ -229,6 +229,103 @@ function parseTime(time: string): Date {
 
 // generate the time slots
 
+// export async function GenerateAvailableTimeSlots(
+//   courtId: string,
+//   date: string
+// ): Promise<string[]> {
+//   const court: Models.Document | null = await ReadCourtById(courtId);
+
+//   if (!court) {
+//     throw new Error("Court not found.");
+//   }
+
+//   // Get day of the week
+//   const dayOfWeek = new Date(date).toLocaleDateString("en-US", { weekday: "long" });
+
+//   const courtTimeSlots: string[] = JSON.parse(court.timeSlots)[dayOfWeek];
+//   if (!courtTimeSlots || courtTimeSlots.length === 0) {
+//     return [];
+//   }
+
+//   console.log(courtTimeSlots);
+//   // Generate all possible 30-minute interval time slots based on court's time slots
+//   let potentialSlots: string[] = [];
+
+//   courtTimeSlots.forEach((slot) => {
+//     const [start, end] = slot.split("-");
+//     const startDate = parseTime(start);
+//     const endDate = parseTime(end);
+
+//     let current = startDate;
+//     const maxDuration = court.maxTime * 60; // in minutes
+
+//     while (addMinutes(current, maxDuration) <= endDate) {
+//       const timeOnlyStart = current.toLocaleTimeString("en-US", { hour12: false });
+//       const timeOnlyEnd = addMinutes(current, maxDuration).toLocaleTimeString("en-US", { hour12: false });
+//       potentialSlots.push(`${timeOnlyStart} - ${timeOnlyEnd}`);
+//       current = addMinutes(current, maxDuration);
+//     }
+//   });
+
+//   // Fetch existing bookings for the court on the given date
+//   const existingBookings = await ReadCourtBookingsByCourtIdAndDate(courtId, date);
+
+//   // Get the current IST time
+//   const now = new Date();
+//   const currentISTTime = new Date(now.getTime() + (330 * 60 * 1000)); // IST is UTC+5:30
+
+//   // Count overlaps for each potential slot and filter out past slots
+//   const availableSlots: string[] = [];
+//   console.log("Details Here: ", {
+//     date,
+//     courtId,
+//     availableSlots,
+//     potentialSlots,
+//     existingBookings,
+//     currentISTTime: currentISTTime.toISOString(),
+//   });
+
+//   potentialSlots.forEach((potentialSlot) => {
+//     const [potentialStart, potentialEnd] = potentialSlot.split("-");
+//     const potentialStartDate = `${date}T${potentialStart.trim()}.000+00:00`;
+//     console.log({potentialStartDate})
+//     //const potentialEndDate = new Date(`${date}T${potentialEnd}:00:00.000+00:00`)
+
+    
+
+//     // Skip slots that are before the current IST time
+//     // if (potentialStartDate < currentISTTime) {
+//     //   return;
+//     // }
+
+
+//     let overlapCount = 0;
+
+//     existingBookings.forEach((booking) => {
+//       // const bookingStart = new Date(booking.start).getTime();
+//       // const bookingEnd = new Date(booking.end).getTime();
+      
+//       if(booking.start === potentialStartDate)
+//         overlapCount+=1;
+//     });
+
+//     if(overlapCount === 0)
+//       availableSlots.push(potentialSlot);
+
+    
+//   });
+
+//   console.log("Details Here: ", {
+//     date,
+//     courtId,
+//     availableSlots,
+//     currentISTTime: currentISTTime.toISOString(),
+//   });
+
+//   return availableSlots;
+// }
+
+// fixed
 export async function GenerateAvailableTimeSlots(
   courtId: string,
   date: string
@@ -240,15 +337,16 @@ export async function GenerateAvailableTimeSlots(
   }
 
   // Get day of the week
-  const dayOfWeek = new Date(date).toLocaleDateString("en-US", { weekday: "long" });
+  const dayOfWeek = new Date(date).toLocaleDateString("en-US", {
+    weekday: "long",
+  });
 
   const courtTimeSlots: string[] = JSON.parse(court.timeSlots)[dayOfWeek];
   if (!courtTimeSlots || courtTimeSlots.length === 0) {
     return [];
   }
 
-  console.log(courtTimeSlots);
-  // Generate all possible 30-minute interval time slots based on court's time slots
+  // Generate all possible slots
   let potentialSlots: string[] = [];
 
   courtTimeSlots.forEach((slot) => {
@@ -260,71 +358,70 @@ export async function GenerateAvailableTimeSlots(
     const maxDuration = court.maxTime * 60; // in minutes
 
     while (addMinutes(current, maxDuration) <= endDate) {
-      const timeOnlyStart = current.toLocaleTimeString("en-US", { hour12: false });
-      const timeOnlyEnd = addMinutes(current, maxDuration).toLocaleTimeString("en-US", { hour12: false });
+      const timeOnlyStart = current.toLocaleTimeString("en-US", {
+        hour12: false,
+      });
+      const timeOnlyEnd = addMinutes(current, maxDuration).toLocaleTimeString(
+        "en-US",
+        { hour12: false }
+      );
       potentialSlots.push(`${timeOnlyStart} - ${timeOnlyEnd}`);
       current = addMinutes(current, maxDuration);
     }
   });
+  
 
   // Fetch existing bookings for the court on the given date
-  const existingBookings = await ReadCourtBookingsByCourtIdAndDate(courtId, date);
-
-  // Get the current IST time
-  const now = new Date();
-  const currentISTTime = new Date(now.getTime() + (330 * 60 * 1000)); // IST is UTC+5:30
-
-  // Count overlaps for each potential slot and filter out past slots
-  const availableSlots: string[] = [];
-  console.log("Details Here: ", {
-    date,
+  const existingBookings = await ReadCourtBookingsByCourtIdAndDate(
     courtId,
-    availableSlots,
-    potentialSlots,
-    existingBookings,
-    currentISTTime: currentISTTime.toISOString(),
-  });
+    date
+  );
+
+  console.log("Existing Bookings: ", existingBookings);
+
+
+  
+
+  // Current IST time (optional filter if you want to skip past slots)
+  const now = new Date();
+  const currentISTTime = new Date(now.getTime() + 330 * 60 * 1000);
+
+  const availableSlots: string[] = [];
 
   potentialSlots.forEach((potentialSlot) => {
     const [potentialStart, potentialEnd] = potentialSlot.split("-");
-    const potentialStartDate = `${date}T${potentialStart.trim()}.000+00:00`;
-    console.log({potentialStartDate})
-    //const potentialEndDate = new Date(`${date}T${potentialEnd}:00:00.000+00:00`)
 
-    
+    // Parse into Date objects
+    const potentialStartTime = new Date(
+      `${date}T${potentialStart.trim()}`
+    ).getTime();
+    const potentialEndTime = new Date(
+      `${date}T${potentialEnd.trim()}`
+    ).getTime();
 
-    // Skip slots that are before the current IST time
-    // if (potentialStartDate < currentISTTime) {
-    //   return;
-    // }
+    // Skip if slot already passed (optional)
+    if (potentialEndTime <= currentISTTime.getTime()) {
+      return;
+    }
 
-
-    let overlapCount = 0;
-
+    // Check overlap with existing bookings
+    let overlap = false;
     existingBookings.forEach((booking) => {
-      // const bookingStart = new Date(booking.start).getTime();
-      // const bookingEnd = new Date(booking.end).getTime();
-      
-      if(booking.start === potentialStartDate)
-        overlapCount+=1;
+      const bookingStart = new Date(booking.start).getTime();
+      const bookingEnd = new Date(booking.end).getTime();
+
+      if (potentialStartTime < bookingEnd && potentialEndTime > bookingStart) {
+        overlap = true;
+      }
     });
 
-    if(overlapCount === 0)
+    if (!overlap) {
       availableSlots.push(potentialSlot);
-
-    
-  });
-
-  console.log("Details Here: ", {
-    date,
-    courtId,
-    availableSlots,
-    currentISTTime: currentISTTime.toISOString(),
+    }
   });
 
   return availableSlots;
 }
-
 
 //Reading Court Requests as per Request id 
 

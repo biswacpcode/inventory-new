@@ -33,19 +33,34 @@ export const formatISTDateTime = (date: Date) =>
     minute: "2-digit",
     hour12: true,
   })
+  // export function formatDateTime(isoString: string): string {
+  //   const date = new Date(isoString);
+  //   const options: Intl.DateTimeFormatOptions = {
+  //     year: 'numeric',
+  //     month: 'long',
+  //     day: 'numeric',
+  //     hour: 'numeric',
+  //     minute: '2-digit',
+  //     hour12: true,
+  //     timeZone: "IST",         // <-- this is the key
+  //     timeZoneName: 'short',
+  //   };
+  //   const result = date.toLocaleString('en-IN', options);
+  //   const formatted = result.replace('UTC', 'IST');
+  //   return formatted;
+  // }
+
   export function formatDateTime(isoString: string): string {
-    const date = new Date(isoString);
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      timeZone: "IST",         // <-- this is the key
-      timeZoneName: 'short',
-    };
-    const result = date.toLocaleString('en-IN', options);
-    const formatted = result.replace('UTC', 'IST');
-    return formatted;
-  }
+  const date = new Date(isoString);
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "Asia/Kolkata", // ✅ Correct timezone
+    timeZoneName: "short",
+  };
+  return date.toLocaleString("en-IN", options); 
+}
