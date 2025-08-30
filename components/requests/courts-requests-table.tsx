@@ -197,11 +197,11 @@ export default function CourtsRequestsTable({ isLoading, searchQuery }: CourtsRe
               <div className="grid gap-2">
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Start:</span>
-                  <span className="text-sm">{formatDateTime(request.startDateTime)}</span>
+                  <span className="text-sm">{formatDateTime2(request.startDateTime)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">End:</span>
-                  <span className="text-sm">{formatDateTime(request.endDateTime)}</span>
+                  <span className="text-sm">{formatDateTime2(request.endDateTime)}</span>
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <Badge className={getStatusColor(request.status)}>
