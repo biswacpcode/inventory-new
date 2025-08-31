@@ -85,3 +85,10 @@ export function formatDateTime2(isoString: string): string {
   return date.toLocaleString("en-IN", options).replace("GMT+5:30", "IST");
 }
 
+export function localToUTC(localDateTime: string): string {
+  // Parse the local datetime string into a Date object
+  const date = new Date(localDateTime);
+
+  // Return as an ISO string in UTC (always ends with 'Z')
+  return date.toISOString();
+}

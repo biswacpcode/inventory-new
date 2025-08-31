@@ -180,6 +180,9 @@ export async function CreateCourtRequest(data: {
 
   // Parse timeSlot
   const [startTime, endTime] = timeSlot.split("-");
+
+  console.log("radhe radhe starttime" , startTime);
+  console.log("End time " , endTime);
   if (!startTime || !endTime) {
     throw new Error("Invalid time slot format.");
   }
@@ -187,6 +190,8 @@ export async function CreateCourtRequest(data: {
   // Combine date and time into ISO strings
   const start = new Date(`${date}T${startTime.trim()}`).toISOString();
   const end = new Date(`${date}T${endTime.trim()}`).toISOString();
+
+  console.log(start , end)
   
 
   const bookingId = ID.unique();

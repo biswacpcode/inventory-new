@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Trash2 } from "lucide-react";
-import { formatDateTime, formatISTDateTime } from "@/lib/utils";
+import { formatDateTime, formatDateTime2, formatISTDateTime } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import {
   DeleteCourtBookingRequest,
@@ -250,13 +250,13 @@ export default function CourtsRequestsTable({
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Start:</span>
                   <span className="text-sm">
-                    {formatDateTime(request.startDateTime)}
+                    {formatDateTime2(request.startDateTime)}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">End:</span>
                   <span className="text-sm">
-                    {formatDateTime(request.endDateTime)}
+                    {formatDateTime2(request.endDateTime)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between mt-2">
@@ -296,10 +296,10 @@ export default function CourtsRequestsTable({
                 </Link>
               </TableCell>
               <TableCell>
-                {formatISTDateTime(new Date(request.startDateTime))}
+                {formatDateTime2((request.startDateTime))}
               </TableCell>
               <TableCell>
-                {formatISTDateTime(new Date(request.endDateTime))}
+                {formatDateTime2((request.endDateTime))}
               </TableCell>
               <TableCell>
                 <Badge className={getStatusColor(request.status)}>

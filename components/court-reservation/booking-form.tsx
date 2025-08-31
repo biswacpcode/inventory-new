@@ -1,15 +1,21 @@
-"use client"
+"use client";
 
-import { useState, useEffect, type FormEvent } from "react"
-import { useDebouncedCallback } from "use-debounce"
-import { format, addDays } from "date-fns"
-import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
-import type { Models } from "node-appwrite"
-import { signIn } from "next-auth/react"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Input } from "../ui/input"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect, type FormEvent } from "react";
+import { useDebouncedCallback } from "use-debounce";
+import { format, addDays } from "date-fns";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import type { Models } from "node-appwrite";
+import { signIn } from "next-auth/react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "../ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectTrigger,
@@ -18,71 +24,89 @@ import {
   SelectItem,
   SelectLabel,
   SelectGroup,
-} from "@/components/ui/select"
-import { Loader2 } from "lucide-react"
+} from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 import {
   ReadCourtBookingsByCourtTypeAndDate,
   GenerateAvailableTimeSlots,
   CreateCourtRequest,
-} from "@/lib/courts/court"
-import { ReadUserByEmail } from "@/lib/action"
+} from "@/lib/courts/court";
+import { ReadUserByEmail } from "@/lib/action";
 
 interface User {
   name: string | null | undefined;
-    email: string | null | undefined;
-    image: string | null | undefined;
-    id: string;
+  email: string | null | undefined;
+  image: string | null | undefined;
+  id: string;
 }
 
 interface BookingFormProps {
-  court: Models.Document
-  user: User | null
-  userId: string | null
-  permission: boolean
-  setPermission: (value: boolean) => void
-  router: AppRouterInstance
+  court: Models.Document;
+  user: User | null;
+  userId: string | null;
+  permission: boolean;
+  setPermission: (value: boolean) => void;
+  router: AppRouterInstance;
 }
 
-interface CanReserve{
-  canReserve: boolean
-  message: string
+interface CanReserve {
+  canReserve: boolean;
+  message: string;
 }
 
-
-export default function BookingForm({ court, user, userId, permission, setPermission, router }: BookingFormProps) {
-  const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), "yyyy-MM-dd"))
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([])
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("")
-  const [companionEmails, setCompanionEmails] = useState<string[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isEmailSubmitting, setIsEmailSubmitting] = useState(false)
-  const [isUpdating, setIsUpdating] = useState(false)
-  const [maxComp, setMaxComp] = useState<number>(0)
-  const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false)
-  const [canReserve, SetCanReserve] = useState<CanReserve>({canReserve: true, message: ""})
+export default function BookingForm({
+  court,
+  user,
+  userId,
+  permission,
+  setPermission,
+  router,
+}: BookingFormProps) {
+  const [selectedDate, setSelectedDate] = useState<string>(
+    format(new Date(), "yyyy-MM-dd")
+  );
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
+  const [companionEmails, setCompanionEmails] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEmailSubmitting, setIsEmailSubmitting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [maxComp, setMaxComp] = useState<number>(0);
+  const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false);
+  const [canReserve, SetCanReserve] = useState<CanReserve>({
+    canReserve: true,
+    message: "",
+  });
 
   useEffect(() => {
     if (court) {
-      setMaxComp(court.minUsers - 1)
+      setMaxComp(court.minUsers - 1);
     }
-  }, [court])
+  }, [court]);
 
   useEffect(() => {
     async function fetchAvailableSlots() {
       if (selectedDate && court) {
-        setIsLoadingTimeSlots(true)
+        setIsLoadingTimeSlots(true);
         try {
-          const slots = await GenerateAvailableTimeSlots(court.$id, selectedDate)
-          console.log("Fetched Slots for today is : ", slots)
+          const slots = await GenerateAvailableTimeSlots(
+            court.$id,
+            selectedDate
+          );
+          console.log("Fetched Slots for today is : ", slots);
 
           const now = new Date();
-          const currentIST = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+          const currentIST = new Date(
+            now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+          );
 
           const filteredSlots = slots.filter((slot) => {
             const [, endTime] = slot.split(" - ");
-            
+
             // Construct a Date object for the slot end time on the selected date
-            const [endHour, endMinute, endSecond] = endTime.split(":").map(Number);
+            const [endHour, endMinute, endSecond] = endTime
+              .split(":")
+              .map(Number);
             const slotEnd = new Date(currentIST);
             slotEnd.setHours(endHour, endMinute, endSecond, 0);
 
@@ -92,158 +116,198 @@ export default function BookingForm({ court, user, userId, permission, setPermis
           console.log("filtered slots for today is : ", filteredSlots);
 
           if (format(now, "yyyy-MM-dd") === selectedDate) {
-            setAvailableTimeSlots(filteredSlots)
+            setAvailableTimeSlots(filteredSlots);
           } else {
-            setAvailableTimeSlots(slots)
+            setAvailableTimeSlots(slots);
           }
         } catch (error) {
-          console.error("Failed to fetch available time slots:", error)
-          setAvailableTimeSlots([])
+          console.error("Failed to fetch available time slots:", error);
+          setAvailableTimeSlots([]);
         } finally {
-          setIsLoadingTimeSlots(false)
+          setIsLoadingTimeSlots(false);
         }
       } else {
-        setAvailableTimeSlots([])
+        setAvailableTimeSlots([]);
       }
     }
 
-    fetchAvailableSlots()
-  }, [selectedDate, court])
+    fetchAvailableSlots();
+  }, [selectedDate, court]);
 
   useEffect(() => {
     if (userId && selectedDate && court) {
-      checkPermission(userId, selectedDate)
+      checkPermission(userId, selectedDate);
     }
-  }, [userId, selectedDate, court])
+  }, [userId, selectedDate, court]);
 
   const checkPermission = async (userId: string, date: string) => {
     try {
-      const existingBookings = await ReadCourtBookingsByCourtTypeAndDate(court.type, date)
-      let hasPermission = true
+      const existingBookings = await ReadCourtBookingsByCourtTypeAndDate(
+        court.type,
+        date
+      );
+      let hasPermission = true;
 
       for (const booking of existingBookings) {
         if (booking.status === "reserved" || booking.status === "punched-in") {
-          if (userId === booking.requestedUser || booking.companions.split(",").includes(userId)) {
-            hasPermission = false
-            break
+          if (
+            userId === booking.requestedUser ||
+            booking.companions.split(",").includes(userId)
+          ) {
+            hasPermission = false;
+            break;
           }
         }
       }
 
-      setPermission(hasPermission)
+      setPermission(hasPermission);
     } catch (error) {
-      console.error("Error checking permission:", error)
-      setPermission(false)
+      console.error("Error checking permission:", error);
+      setPermission(false);
     }
-  }
+  };
 
-  const debouncedUpdateEmail = useDebouncedCallback((index: number, value: string) => {
-    const updatedEmails = [...companionEmails]
-    updatedEmails[index] = value
-    setCompanionEmails(updatedEmails)
-  }, 300)
+  const debouncedUpdateEmail = useDebouncedCallback(
+    (index: number, value: string) => {
+      const updatedEmails = [...companionEmails];
+      updatedEmails[index] = value;
+      setCompanionEmails(updatedEmails);
+    },
+    300
+  );
 
   const handleCompanionEmailChange = (index: number, value: string) => {
-    debouncedUpdateEmail(index, value)
-  }
+    debouncedUpdateEmail(index, value);
+  };
 
   const handleDateSelection = async (date: string) => {
-    setSelectedDate(date)
-    setSelectedTimeSlot("")
-  }
+    setSelectedDate(date);
+    setSelectedTimeSlot("");
+  };
 
   const handleCompanionEmailsSubmit = async () => {
-    setIsEmailSubmitting(true)
+    setIsEmailSubmitting(true);
     try {
-      setCompanionEmails([...companionEmails])
-      setIsUpdating(true)
+      setCompanionEmails([...companionEmails]);
+      setIsUpdating(true);
     } finally {
-      setIsEmailSubmitting(false)
+      setIsEmailSubmitting(false);
     }
-  }
+  };
 
-  const checkReservations = async (userId: string, companionEmails: string[], date: string) => {
-    const companionUserIds: string[] = []
+  const checkReservations = async (
+    userId: string,
+    companionEmails: string[],
+    date: string
+  ) => {
+    const companionUserIds: string[] = [];
 
     for (const email of companionEmails) {
       if (email !== user?.email) {
-        const companionUser = await ReadUserByEmail(email)
+        const companionUser = await ReadUserByEmail(email);
         if (companionUser) {
           if (companionUserIds.includes(companionUser.$id)) {
-            SetCanReserve( { canReserve: false, message: `You are trying to add duplicate email addresses` } )
-            return { canReserve: false, message: `You are trying to add duplicate email addresses` }
+            SetCanReserve({
+              canReserve: false,
+              message: `You are trying to add duplicate email addresses`,
+            });
+            return {
+              canReserve: false,
+              message: `You are trying to add duplicate email addresses`,
+            };
           }
-          companionUserIds.push(companionUser.$id)
+          companionUserIds.push(companionUser.$id);
         } else {
-          SetCanReserve ({ canReserve: false, message: `User with email ${email} not found.` })
-          return { canReserve: false, message: `User with email ${email} not found.` }
+          SetCanReserve({
+            canReserve: false,
+            message: `User with email ${email} not found.`,
+          });
+          return {
+            canReserve: false,
+            message: `User with email ${email} not found.`,
+          };
         }
       } else {
-        SetCanReserve ({ canReserve: false, message: `You cannot add your own email as a companion` })
-        return { canReserve: false, message: `You cannot add your own email as a companion` }
+        SetCanReserve({
+          canReserve: false,
+          message: `You cannot add your own email as a companion`,
+        });
+        return {
+          canReserve: false,
+          message: `You cannot add your own email as a companion`,
+        };
       }
     }
 
-    const allUserIds = [userId, ...companionUserIds]
-    const existingBookings = await ReadCourtBookingsByCourtTypeAndDate(court.type, date)
+    const allUserIds = [userId, ...companionUserIds];
+    const existingBookings = await ReadCourtBookingsByCourtTypeAndDate(
+      court.type,
+      date
+    );
 
     for (const booking of existingBookings) {
       if (booking.status === "reserved" || booking.status === "punched-in") {
         if (
           allUserIds.includes(booking.requestedUser) ||
-          booking.companions.split(",").some((comp: string) => allUserIds.includes(comp))
+          booking.companions
+            .split(",")
+            .some((comp: string) => allUserIds.includes(comp))
         ) {
-          SetCanReserve ({
+          SetCanReserve({
             canReserve: false,
-            message: "You or your companions have an ongoing reservation. Please wait until it is completed.",
-          })
+            message:
+              "You or your companions have an ongoing reservation. Please wait until it is completed.",
+          });
           return {
             canReserve: false,
-            message: "You or your companions have an ongoing reservation. Please wait until it is completed.",
-          }
+            message:
+              "You or your companions have an ongoing reservation. Please wait until it is completed.",
+          };
         }
       }
     }
-    SetCanReserve({ canReserve: true, message: "No ongoing reservations." })
+    SetCanReserve({ canReserve: true, message: "No ongoing reservations." });
 
-    return { canReserve: true, message: "No ongoing reservations." }
-  }
+    return { canReserve: true, message: "No ongoing reservations." };
+  };
 
-  useEffect(()=>{
+  useEffect(() => {
     checkReservations(userId!, companionEmails, selectedDate);
-  }, [court, user, userId, companionEmails])
+  }, [court, user, userId, companionEmails]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!selectedTimeSlot || companionEmails.length < court.minUsers - 1) {
-      alert("Please fill in all required fields.")
-      return
+      alert("Please fill in all required fields.");
+      return;
     }
 
     if (!user) {
-      alert("User not logged in.")
-      signIn("google")
-      return
+      alert("User not logged in.");
+      signIn("google");
+      return;
     }
 
     if (!permission) {
-      SetCanReserve({canReserve: false, message: "You Have one reservation already!"});
-      return
+      SetCanReserve({
+        canReserve: false,
+        message: "You Have one reservation already!",
+      });
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
-
-      const companionUserIds: string[] = []
+      const companionUserIds: string[] = [];
       for (const email of companionEmails) {
-        const companionUser = await ReadUserByEmail(email)
+        const companionUser = await ReadUserByEmail(email);
         if (companionUser) {
-          companionUserIds.push(companionUser.$id)
+          companionUserIds.push(companionUser.$id);
         } else {
-          alert(`User with email ${email} not found.`)
-          return
+          alert(`User with email ${email} not found.`);
+          return;
         }
       }
 
@@ -255,26 +319,31 @@ export default function BookingForm({ court, user, userId, permission, setPermis
         date: selectedDate,
         timeSlot: selectedTimeSlot,
         type: court.type,
-      })
+      });
 
-      router.push("/requests?type=courts")
+      router.push("/requests?type=courts");
     } catch (error: any) {
-      console.error("Error reserving court:", error)
-      alert(error.message || "An unexpected error occurred. Please try again.")
+      console.error("Error reserving court:", error);
+      alert(error.message || "An unexpected error occurred. Please try again.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Card className="flex-1">
       <CardHeader>
         <CardTitle>Reserve Court</CardTitle>
-        <CardDescription>Select your preferred time slot and companions to reserve the court.</CardDescription>
+        <CardDescription>
+          Select your preferred time slot and companions to reserve the court.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form className="grid gap-4" onSubmit={handleSubmit}>
-          <DateSelector selectedDate={selectedDate} onDateSelect={handleDateSelection} />
+          <DateSelector
+            selectedDate={selectedDate}
+            onDateSelect={handleDateSelection}
+          />
 
           <div className="grid gap-2">
             <Label htmlFor="timeSlot">Available Time Slots</Label>
@@ -326,8 +395,17 @@ export default function BookingForm({ court, user, userId, permission, setPermis
           <Button
             type="submit"
             className="w-full"
-            disabled={isSubmitting || !permission || !selectedTimeSlot || !canReserve.canReserve}
-            title={!permission ? "You already have one reserved court" : "Reserve Court"}
+            disabled={
+              isSubmitting ||
+              !permission ||
+              !selectedTimeSlot ||
+              !canReserve.canReserve
+            }
+            title={
+              !permission
+                ? "You already have one reserved court"
+                : "Reserve Court"
+            }
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2">
@@ -338,19 +416,20 @@ export default function BookingForm({ court, user, userId, permission, setPermis
               "Reserve Court"
             )}
           </Button>
-          {!canReserve.canReserve && 
-          <p className="text-muted-foreground text-sm">{canReserve.message}</p>
-          
-          }
+          {!canReserve.canReserve && (
+            <p className="text-muted-foreground text-sm">
+              {canReserve.message}
+            </p>
+          )}
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 interface DateSelectorProps {
-  selectedDate: string
-  onDateSelect: (date: string) => void
+  selectedDate: string;
+  onDateSelect: (date: string) => void;
 }
 
 function DateSelector({ selectedDate, onDateSelect }: DateSelectorProps) {
@@ -359,38 +438,54 @@ function DateSelector({ selectedDate, onDateSelect }: DateSelectorProps) {
       <Label htmlFor="dateSelection">Select Date</Label>
       <div className="flex gap-2 flex-wrap">
         <Button
-          variant={selectedDate === format(new Date(), "yyyy-MM-dd") ? "default" : "outline"}
+          variant={
+            selectedDate === format(new Date(), "yyyy-MM-dd")
+              ? "default"
+              : "outline"
+          }
           onClick={() => onDateSelect(format(new Date(), "yyyy-MM-dd"))}
           type="button"
         >
           Today
         </Button>
         <Button
-          variant={selectedDate === format(addDays(new Date(), 1), "yyyy-MM-dd") ? "default" : "outline"}
-          onClick={() => onDateSelect(format(addDays(new Date(), 1), "yyyy-MM-dd"))}
+          variant={
+            selectedDate === format(addDays(new Date(), 1), "yyyy-MM-dd")
+              ? "default"
+              : "outline"
+          }
+          onClick={() =>
+            onDateSelect(format(addDays(new Date(), 1), "yyyy-MM-dd"))
+          }
           type="button"
         >
           Tomorrow
         </Button>
         <Button
-          variant={selectedDate === format(addDays(new Date(), 2), "yyyy-MM-dd") ? "default" : "outline"}
-          onClick={() => onDateSelect(format(addDays(new Date(), 2), "yyyy-MM-dd"))}
+          variant={
+            selectedDate === format(addDays(new Date(), 2), "yyyy-MM-dd")
+              ? "default"
+              : "outline"
+          }
+          onClick={() =>
+            onDateSelect(format(addDays(new Date(), 2), "yyyy-MM-dd"))
+          }
           type="button"
         >
           Day After Tomorrow
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
 interface CompanionEmailsSectionProps {
-  maxComp: number
-  companionEmails: string[]
-  handleCompanionEmailChange: (index: number, value: string) => void
-  handleCompanionEmailsSubmit: () => void
-  isEmailSubmitting: boolean
-  isUpdating: boolean
+  maxComp: number;
+  companionEmails: string[];
+  handleCompanionEmailChange: (index: number, value: string) => void;
+  handleCompanionEmailsSubmit: () => void;
+  isEmailSubmitting: boolean;
+  isUpdating: boolean;
 }
 
 function CompanionEmailsSection({
@@ -414,7 +509,9 @@ function CompanionEmailsSection({
                 type="email"
                 placeholder={`Companion ${index + 1} Email`}
                 defaultValue={companionEmails[index] || ""}
-                onChange={(e) => handleCompanionEmailChange(index, e.target.value)}
+                onChange={(e) =>
+                  handleCompanionEmailChange(index, e.target.value)
+                }
                 required
               />
             </div>
@@ -442,7 +539,9 @@ function CompanionEmailsSection({
           </Button>
         </div>
       )}
-      <small className="text-muted-foreground mt-2">Enter the email addresses of your {maxComp} companions.</small>
+      <small className="text-muted-foreground mt-2">
+        Enter the email addresses of your {maxComp} companions.
+      </small>
     </div>
-  )
+  );
 }
