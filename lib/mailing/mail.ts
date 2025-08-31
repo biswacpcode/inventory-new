@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { formatDateTime2 } from "../utils";
 
 export async function sendBookingConfirmationEmail(
   to: string,
@@ -21,6 +22,9 @@ export async function sendBookingConfirmationEmail(
       pass: process.env.GMAIL_PASS, // app password, not your main password
     },
   });
+
+  console.log("\n\n Radhe Radhe start time is")
+ 
 
   const mailOptions = {
     from: `"Inventory IITBBS" <${process.env.GMAIL_USER}>`,
@@ -127,8 +131,8 @@ export async function sendBookingConfirmationEmail(
       <p>Your booking request for <strong>${itemName}</strong> has been submitted successfully. Here are the details:</p>
       <ul>
         <li><span class="label">Item:</span> ${itemName}</li>
-        <li><span class="label">Start:</span> ${new Date(start).toLocaleString()}</li>
-        <li><span class="label">End:</span> ${new Date(end).toLocaleString()}</li>
+        <li><span class="label">Start:</span> ${new Date(start).toISOString()}</li>
+        <li><span class="label">End:</span> ${new Date(end).toISOString()}</li>
         <li><span class="label">Quantity:</span> ${bookedQuantity}</li>
       </ul>
       <p>We’ll notify you once your request is reviewed and approved.</p>

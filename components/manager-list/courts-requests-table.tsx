@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Trash2 } from "lucide-react";
-import { formatDateTime, formatDateTime2, formatISTDateTime } from "@/lib/utils";
+import {  formatDateTime2 } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import {
   DeleteCourtBookingRequest,
