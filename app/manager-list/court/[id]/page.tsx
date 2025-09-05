@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Calendar, Clock, Download, MapPin, User, Users } from "lucide-react"
 import Link from "next/link"
-import { formatDateTime } from "@/lib/utils"
+import { formatDateTime, formatDateTime2 } from "@/lib/utils"
 import { ReadUserById } from "@/lib/action"
 import { ReadCourtRequest } from "@/lib/courts/court"
 
@@ -114,6 +114,8 @@ export default function CourtRequestDetailPage({
         </div>
       )
     }
+
+    console.log("request", request)
   
     return (
       <div className="container py-8 px-4 md:px-6 mx-auto">
@@ -145,7 +147,7 @@ export default function CourtRequestDetailPage({
                       <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
                       <div>
                         <h3 className="font-medium">Start Time</h3>
-                        <p className="text-muted-foreground">{formatDateTime(request.start)}</p>
+                        <p className="text-muted-foreground">{formatDateTime2(request.start)}</p>
                       </div>
                     </div>
   
@@ -153,7 +155,7 @@ export default function CourtRequestDetailPage({
                       <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
                       <div>
                         <h3 className="font-medium">End Time</h3>
-                        <p className="text-muted-foreground">{formatDateTime(request.end)}</p>
+                        <p className="text-muted-foreground">{formatDateTime2(request.end)}</p>
                       </div>
                     </div>
   
